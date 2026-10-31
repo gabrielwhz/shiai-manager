@@ -35,11 +35,11 @@ const Chave = {
   },
   corte(t, max) { t = String(t || ""); return t.length > max ? t.slice(0, max - 1) + "…" : t; },
 
-  svg(dados) {
+  svg(dados, opts = {}) {
     const C = { linha: "#1B2236", fraca: "#B7BFCF", aka: "#D12A3A", ao: "#2357C9", txt: "#111", mut: "#6B7385", ouro: "#E8A80C" };
     const F = 'font-family="Barlow, Arial, sans-serif"';
     const slots = dados.slots || [];
-    const W = 1000;
+    let W = 1000;
     if (slots.length === 1) {
       const n = slots[0] ? slots[0].nome : "";
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} 110" ${F}>
@@ -53,6 +53,7 @@ const Chave = {
     const fs = S >= 32 ? 11 : 13.5;
     const top = 34, padL = 8;
     const H = top + S * gap + 26;
+    if (opts.proporcao) W = Math.max(1000, Math.round(H * opts.proporcao)); // ocupa a largura da folha
     const colW = (W - padL - 8) / (R + 1);
     let ys = slots.map((_, i) => top + i * gap + gap / 2 + 4);
     let cur = slots.map(s => ({ nome: s ? s.nome : null, bye: s === null }));
@@ -90,45 +91,84 @@ const Chave = {
   }
 };
 
-/* ---------- impressão ---------- */
-function cabecalhoFolha(comp) {
-  const logo = comp.logo || "../assets/logo.svg";
-  const info = [fmtDatas(comp.datas), comp.local, comp.federacao].filter(Boolean).map(esc).join(" — ");
-  return { logo: esc(logo), nome: esc(comp.nome), info };
+/* ---------- súmula em PDF ---------- */
+const LOGO_PADRAO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shiai Manager">
+  <rect width="64" height="64" rx="15" fill="#15203B"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="M13 18h13v14" stroke="#E5404F"/>
+    <path d="M13 46h13V32" stroke="#4C7EEA"/>
+    <path d="M26 32h14" stroke="#FFFFFF"/>
+  </g>
+  <circle cx="47" cy="32" r="6.5" fill="#F2B21B"/>
+</svg>`);
+
+function nomeArquivoSumula(cat) {
+  return nomeSeguro(`${cat.nome} - ${MOD[cat.modalidade]} ${SEXO[cat.sexo]} - Cód ${cat.codigo ?? ""}`);
 }
-function folhaSumula(comp, cat, dados) {
-  const h = cabecalhoFolha(comp);
-  const det = cat
-    ? `<span><b>Categoria:</b> ${esc(cat.nome)}</span><span><b>Sexo:</b> ${SEXO[cat.sexo]}</span><span><b>Idade:</b> ${esc(faixaIdade(cat))}</span>${cat.faixas ? `<span><b>Faixas:</b> ${esc(cat.faixas)}</span>` : ""}<span><b>Cód.</b> ${cat.codigo ?? ""}</span>`
-    : `<span><b>Categoria:</b> ______________________________________</span><span><b>Modalidade:</b> (&nbsp;&nbsp;) Kata&nbsp;&nbsp;(&nbsp;&nbsp;) Kumitê</span><span><b>Cód.</b> ______</span>`;
+// Página A4 deitada (1123 x 794 px a 96 dpi) com cabeçalho, chave e rodapé
+function paginaSumulaSVG(comp, cat, dados) {
+  const W = 1123, H = 794, M = 36, NAVY = "#15203B";
+  const info = [fmtDatas(comp.datas), comp.local, comp.federacao].filter(Boolean).join(" — ");
   const tit = cat ? `Súmula de ${MOD[cat.modalidade]}` : "Súmula de combate";
-  const grande = (dados.slots || []).length >= 32 ? " grande" : "";
-  return `<section class="folha sumula${grande}">
-    <header class="fs-top"><img src="${h.logo}" alt=""><div><strong>${h.nome}</strong><span>${h.info}</span></div><div class="fs-tit">${tit}</div></header>
-    <div class="fs-cat">${det}</div>
-    <div class="fs-chave">${Chave.svg(dados)}</div>
-    <footer class="fs-rodape">
-      <div class="fs-linhas"><p><b>Árbitros:</b></p><p><b>Mesários:</b></p><p><b>Observações:</b></p></div>
-      <table class="fs-class"><tr><th colspan="2">Classificação</th></tr><tr><td>1º</td><td></td></tr><tr><td>2º</td><td></td></tr><tr><td>3º</td><td></td></tr><tr><td>3º</td><td></td></tr></table>
-    </footer>
-  </section>`;
-}
-function folhaListaAtletas(comp, cats, atletas, mostrarQuem) {
-  const h = cabecalhoFolha(comp);
-  const linhas = (lista) => `<table class="lista-tab"><thead><tr><th>#</th><th>Nome</th><th>Idade</th><th>Sexo</th><th>Graduação</th><th>Equipe</th>${mostrarQuem ? "<th>Cadastrado por</th>" : ""}</tr></thead><tbody>
-    ${lista.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(a.nome)}</td><td>${a.idade ?? ""}</td><td>${a.sexo || ""}</td><td>${esc(a.graduacao || "")}</td><td>${esc(a.equipe || "")}</td>${mostrarQuem ? `<td>${esc(a.cadastrado_por_nome || "")}</td>` : ""}</tr>`).join("")}</tbody></table>`;
-  let html = "";
-  for (const c of cats) {
-    const l = atletas.filter(a => (a.categorias || []).includes(c.id)).sort((x, y) => cmpNome(x.nome, y.nome));
-    if (!l.length) continue;
-    html += `<div class="lista-cat"><h3>Cód. ${c.codigo ?? ""} — ${esc(c.nome)} — ${MOD[c.modalidade]} ${SEXO[c.sexo]} — ${esc(faixaIdade(c))} (${l.length})</h3>${linhas(l)}</div>`;
+  let det;
+  if (cat) {
+    const partes = [["Categoria", cat.nome], ["Sexo", SEXO[cat.sexo]], ["Idade", faixaIdade(cat)]];
+    if (cat.faixas) partes.push(["Faixas", cat.faixas]);
+    partes.push(["Cód.", cat.codigo ?? ""]);
+    det = partes.map(([k, v], i) => `<tspan font-weight="700" ${i ? 'dx="26"' : ""}>${k}: </tspan><tspan>${esc(Chave.corte(v, 70))}</tspan>`).join("");
+  } else {
+    det = `<tspan font-weight="700">Categoria: </tspan><tspan>__________________________________________</tspan>
+      <tspan font-weight="700" dx="26">Modalidade: </tspan><tspan>(   ) Kata    (   ) Kumitê</tspan>
+      <tspan font-weight="700" dx="26">Cód.: </tspan><tspan>________</tspan>`;
   }
-  const ids = new Set(cats.map(c => c.id));
-  const sem = atletas.filter(a => !(a.categorias || []).some(id => ids.has(id))).sort((x, y) => cmpNome(x.nome, y.nome));
-  if (sem.length) html += `<div class="lista-cat"><h3>Sem categoria (${sem.length})</h3>${linhas(sem)}</div>`;
-  return `<section class="folha">
-    <header class="lista-top"><img src="${h.logo}" alt=""><div><strong>${h.nome}</strong><span>${h.info}</span><span style="display:block">Lista de atletas por categoria — ${atletas.length} atleta(s)</span></div></header>
-    ${html || "<p>Nenhum atleta cadastrado.</p>"}</section>`;
+  const top = M + 112, fy = H - M - 122, alt = fy - 14 - top;
+  const chave = Chave.svg(dados, { proporcao: (W - 2 * M) / alt }).replace('<svg xmlns="http://www.w3.org/2000/svg" ',
+    `<svg x="${M}" y="${top}" width="${W - 2 * M}" height="${alt}" preserveAspectRatio="xMidYMin meet" `);
+  const lx2 = W - M - 262, tx = W - M - 236;
+  const linhas = ["Árbitros:", "Mesários:", "Observações:"].map((r, i) =>
+    `<text x="${M}" y="${fy + 20 + i * 40}" font-size="13" font-weight="700">${r}</text>
+     <line x1="${M}" y1="${fy + 28 + i * 40}" x2="${lx2}" y2="${fy + 28 + i * 40}" stroke="#000" stroke-width="1"/>`).join("");
+  const tabela = `<rect x="${tx}" y="${fy}" width="236" height="24" fill="${NAVY}"/>
+    <text x="${tx + 118}" y="${fy + 17}" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Classificação</text>
+    ${["1º", "2º", "3º", "3º"].map((l, i) => `<rect x="${tx}" y="${fy + 24 + i * 24}" width="236" height="24" fill="none" stroke="#000"/>
+      <line x1="${tx + 44}" y1="${fy + 24 + i * 24}" x2="${tx + 44}" y2="${fy + 48 + i * 24}" stroke="#000"/>
+      <text x="${tx + 22}" y="${fy + 41 + i * 24}" font-size="13" font-weight="700" text-anchor="middle">${l}</text>`).join("")}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Barlow, Arial, Helvetica, sans-serif" fill="#111">
+    <rect width="${W}" height="${H}" fill="#fff"/>
+    <text x="${M + 68}" y="${M + 25}" font-size="23" font-weight="700">${esc(Chave.corte(comp.nome, 56))}</text>
+    <text x="${M + 68}" y="${M + 46}" font-size="12.5" fill="#444">${esc(Chave.corte(info, 110))}</text>
+    <text x="${W - M}" y="${M + 32}" font-size="21" font-weight="700" text-anchor="end">${tit}</text>
+    <line x1="${M}" y1="${M + 64}" x2="${W - M}" y2="${M + 64}" stroke="${NAVY}" stroke-width="2.5"/>
+    <text x="${M}" y="${M + 88}" font-size="13.5">${det}</text>
+    <line x1="${M}" y1="${M + 99}" x2="${W - M}" y2="${M + 99}" stroke="#BBB" stroke-width="1"/>
+    ${chave}${linhas}${tabela}</svg>`;
+  return { svg, logo: { src: comp.logo || LOGO_PADRAO, x: M, y: M, w: 56, h: 56 }, W, H };
+}
+async function paginaSumula(comp, cat, dados) {
+  const p = paginaSumulaSVG(comp, cat, dados);
+  const img = await svgParaJPEG(p.svg, p.W, p.H, p.logo, 2);
+  return { ...img, paisagem: true };
+}
+
+/* ---------- tabela de atletas (modelo da Copinha) ---------- */
+function linhaCategoriasAtleta(a, catById) {
+  const cs = (a.categorias || []).map(catById).filter(Boolean);
+  return ["kata", "kumite"].map(m => {
+    const l = cs.filter(c => c.modalidade === m);
+    return `${MOD[m]}: ${l.length ? l.map(c => `Cód ${c.codigo ?? ""} - ${c.nome}`).join(" / ") : "(não inscrito)"}`;
+  }).join("  |  ");
+}
+function folhaListaAtletas(comp, cats, atletas) {
+  const catById = id => cats.find(c => c.id === id);
+  const lista = atletas.slice().sort((x, y) => cmpNome(x.nome, y.nome));
+  const logo = esc(comp.logo || "../assets/logo.svg");
+  return `<section class="folha lista">
+    <header class="lista-top"><img src="${logo}" alt=""><div><strong>${esc(comp.nome)}</strong>
+      <span>Lista de atletas — ${lista.length} atleta(s) — ${new Date().toLocaleDateString("pt-BR")}</span></div></header>
+    <table class="lista-tab"><thead><tr><th>Nº</th><th>Nome</th><th>Idade</th><th>Faixa</th><th>Equipe / academia</th></tr></thead>
+    ${lista.map((a, i) => `<tbody><tr class="l1"><td class="n" rowspan="2">${i + 1}</td><td><b>${esc(a.nome)}</b></td><td>${a.idade ?? ""}</td><td>${esc(a.graduacao || "")}</td><td>${esc(a.equipe || "")}</td></tr>
+      <tr class="l2"><td colspan="4">${esc(linhaCategoriasAtleta(a, catById))}</td></tr></tbody>`).join("")}
+    </table>${lista.length ? "" : "<p>Nenhum atleta cadastrado.</p>"}</section>`;
 }
 function imprimir(html, { titulo, paisagem = true }) {
   let area = $("#print");
@@ -136,7 +176,7 @@ function imprimir(html, { titulo, paisagem = true }) {
   area.innerHTML = html;
   let st = $("#pageStyle");
   if (!st) { st = document.createElement("style"); st.id = "pageStyle"; document.head.append(st); }
-  st.textContent = `@page{size:A4 ${paisagem ? "landscape" : "portrait"};margin:9mm}`;
+  st.textContent = `@page{size:A4 ${paisagem ? "landscape" : "portrait"};margin:10mm}`;
   const antigo = document.title;
   document.title = titulo; // o navegador usa o título como nome sugerido do PDF
   window.addEventListener("afterprint", () => { document.title = antigo; area.innerHTML = ""; }, { once: true });

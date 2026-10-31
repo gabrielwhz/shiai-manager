@@ -53,6 +53,12 @@ img{max-width:100%}
 .btn.big{padding:13px 22px;font-size:16px}
 .linkbtn{background:none;border:0;padding:0;color:var(--ao);font:inherit;cursor:pointer;text-decoration:underline}
 .linkbtn.danger{color:var(--aka)}
+.btn svg,.btn-ic svg{flex:none}
+.btn-ic{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r-s);padding:6px 10px;font:600 14px/1.2 var(--body);cursor:pointer;white-space:nowrap}
+.btn-ic:hover{background:var(--soft)}
+.btn-ic.danger{color:var(--aka)}
+.btn-ic.danger:hover{border-color:var(--aka)}
+.perigo-txt{color:var(--aka)}
 
 .field{display:grid;gap:6px;font-weight:600;font-size:.9rem;min-width:0}
 .field>span.hint{font-weight:400;color:var(--mut);font-size:.82rem}
@@ -206,6 +212,22 @@ table.tab{width:100%;border-collapse:collapse;font-size:.95rem}
 .logo-pick{display:flex;gap:14px;align-items:center}
 .logo-pick .comp-logo{width:76px;height:76px}
 
+/* categorias com atletas */
+.cat-list{display:grid;gap:10px}
+details.cat-item{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m)}
+details.cat-item[open]{border-color:var(--ao)}
+details.cat-item>summary{list-style:none;display:grid;grid-template-columns:56px 1fr auto auto;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
+details.cat-item>summary::-webkit-details-marker{display:none}
+.cat-item .cod-box{font:700 1.5rem/1 var(--display);color:var(--mut);text-align:center}
+.cat-item .n b{display:block;font-size:1.02rem}
+.cat-item .n small{color:var(--mut);font-size:.86rem}
+.cat-item .qtd{display:flex;align-items:center;gap:4px;font-weight:600;color:var(--mut);white-space:nowrap}
+.cat-item .qtd svg{transition:transform .15s}
+.cat-item[open] .qtd svg{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){.cat-item .qtd svg{transition:none}}
+.acoes-cat{display:flex;gap:6px}
+.cat-atl{border-top:1px solid var(--line);padding:6px 16px 12px}
+
 /* chaves */
 .chv-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
 .chv-lista{display:grid;gap:6px;max-height:70vh;overflow:auto;padding-right:4px}
@@ -248,6 +270,8 @@ dialog.modal[open]{display:flex;flex-direction:column;animation:abre .18s ease-o
   .atl-layout,.chv-layout,.painel-lado,.conta-grid{grid-template-columns:1fr}
   .atl-form{position:static}
   .chv-lista{max-height:none;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  details.cat-item>summary{grid-template-columns:44px 1fr;gap:8px 12px}
+  .cat-item .qtd,.acoes-cat{grid-column:2}
   .cat-row{grid-template-columns:1fr 1fr 1fr;}
   .cat-row .c-nome{grid-column:2/-1}
   .cat-row .c-faixas{grid-column:1/-1}
@@ -310,12 +334,13 @@ dialog.modal[open]{display:flex;flex-direction:column;animation:abre .18s ease-o
 .lista-top img{width:48px;height:48px;object-fit:contain}
 .lista-top strong{display:block;font:700 20px/1.1 var(--display)}
 .lista-top span{font-size:11px;color:#444}
-.lista-cat{break-inside:avoid;margin:10px 0 4px}
-.lista-cat h3{font:700 14px var(--display);margin:0 0 3px;background:#EEF1F6;padding:4px 6px}
 .lista-tab{width:100%;border-collapse:collapse;font-size:11.5px}
-.lista-tab th{text-align:left;border-bottom:1px solid #000;padding:2px 5px}
-.lista-tab td{border-bottom:1px solid #ccc;padding:2px 5px}
-.lista-tab tr{break-inside:avoid}
+.lista-tab th{text-align:left;background:#E6EEF8;color:#15203B;border:1px solid #9AA6BA;padding:4px 6px}
+.lista-tab tbody{break-inside:avoid;page-break-inside:avoid}
+.lista-tab td{border:1px solid #9AA6BA;padding:3px 6px;vertical-align:top}
+.lista-tab td.n{text-align:center;width:9mm;vertical-align:middle}
+.lista-tab .l1 td{border-bottom:0;padding-bottom:1px}
+.lista-tab .l2 td{border-top:0;font-size:10px;color:#333;padding-top:0}
 </style>
 </head>
 <body>
@@ -323,8 +348,9 @@ dialog.modal[open]{display:flex;flex-direction:column;animation:abre .18s ease-o
 <datalist id="listaFaixas"></datalist>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="../js/config.js"></script>
-<script src="../js/comum.js?v=3"></script>
-<script src="../js/chave.js?v=3"></script>
-<script src="../js/competicao.js?v=3"></script>
+<script src="../js/comum.js?v=4"></script>
+<script src="../js/arquivos.js?v=4"></script>
+<script src="../js/chave.js?v=4"></script>
+<script src="../js/competicao.js?v=4"></script>
 </body>
 </html>

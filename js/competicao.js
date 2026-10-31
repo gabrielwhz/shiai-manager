@@ -7,6 +7,7 @@
 
   const S = { comp: null, dono: false, cats: [], atletas: [], chaves: {}, membros: [], convites: [], catSel: null, editId: null, busca: "" };
   const catById = cid => S.cats.find(c => c.id === cid);
+  const modTxt = a => { const m = new Set((a.categorias || []).map(catById).filter(Boolean).map(c => c.modalidade)); return m.has("kata") && m.has("kumite") ? "Kata e Kumitê" : m.has("kata") ? "Kata" : m.has("kumite") ? "Kumitê" : "nenhuma modalidade"; };
   const atletasDaCat = cid => S.atletas.filter(a => (a.categorias || []).includes(cid)).sort((a, b) => cmpNome(a.nome, b.nome));
   const equipeKey = "equipe:" + user.id;
 
@@ -22,7 +23,7 @@
   document.title = comp.nome + " — Shiai Manager";
 
   const ABAS = S.dono
-    ? [["atletas", "Atletas"], ["categorias", "Categorias"], ["chaves", "Chaves e súmulas"], ["equipe", "Professores"], ["dados", "Dados da competição"]]
+    ? [["atletas", "Atletas"], ["categorias", "Categorias"], ["chaves", "Súmulas"], ["equipe", "Professores"], ["dados", "Dados da competição"]]
     : [["atletas", "Meus atletas"]];
 
   app.innerHTML = `<section class="comp-hero" id="hero"></section>
@@ -102,7 +103,7 @@
       </form>
       <div class="stack">
         <div class="row"><h2>${S.dono ? "Atletas inscritos" : "Atletas que você cadastrou"} <span class="mut" id="atlCount"></span></h2><span class="spacer"></span>
-          ${S.dono ? `<button class="btn alt sm" id="btnLista" type="button">Baixar lista de atletas (PDF)</button>` : ""}</div>
+          ${S.dono ? `<button class="btn alt sm" id="btnLista" type="button">${ICONE.pdf} Tabela de atletas (PDF)</button>` : ""}</div>
         <input type="search" id="busca" placeholder="Buscar por nome, equipe ou categoria" aria-label="Buscar atletas" value="${esc(S.busca)}">
         <div id="atlLista"></div>
       </div></div>`;
@@ -126,7 +127,8 @@
       box.hidden = !on; if (!on) continue;
       let atual = sel.value || (manter && manter[m]) || "";
       const { h, ok, total } = opcoesCat(m, idade, sexo, atual);
-      if (!manter && (!atual || !ok.some(c => c.id === atual)) && ok.length) atual = ok[0].id;
+      // a escolhida não combina mais com idade/sexo: troca pela primeira que combina (ou limpa, para escolher em "Outras")
+      if (!manter && !ok.some(c => c.id === atual)) atual = ok.length ? ok[0].id : "";
       sel.innerHTML = h; sel.value = atual;
       $(`[data-cathint=${m}]`, f).textContent = !total ? `Ainda não há categorias de ${MOD[m]}.`
         : ok.length > 1 ? `${ok.length} categorias combinam com este atleta. Confira a faixa.`
@@ -153,8 +155,25 @@
       }
       if (!categorias.length) return toast("Marque Kata, Kumitê ou os dois.", "erro");
       try { localStorage.setItem(equipeKey, equipe || ""); } catch (err) { /* ok */ }
-      const row = { nome, idade, sexo, graduacao, equipe, categorias };
       const editando = S.editId;
+      if (!editando) {
+        // mesmo atleta já cadastrado (nome, sexo, idade e faixa)? junta as modalidades num cadastro só
+        const ex = S.atletas.find(x => norm(x.nome) === norm(nome) && x.sexo === sexo && x.idade === idade && norm(x.graduacao) === norm(graduacao));
+        if (ex) {
+          const temMod = new Set((ex.categorias || []).map(catById).filter(Boolean).map(c => c.modalidade));
+          const novas = categorias.filter(cid => { const c = catById(cid); return c && !temMod.has(c.modalidade); });
+          if (!novas.length) return toast(`${ex.nome} já está cadastrado(a) em ${modTxt(ex)}.`, "erro");
+          const nomesMod = novas.map(cid => MOD[catById(cid).modalidade]).join(" e ");
+          if (!await confirmar(`<b>${esc(ex.nome)}</b> já está cadastrado(a) em ${modTxt(ex)}. Adicionar ${nomesMod} a esse mesmo cadastro?`, { titulo: "Atleta já cadastrado", ok: `Adicionar ${nomesMod}` })) return;
+          const r = await sb.from("atletas").update({ categorias: [...(ex.categorias || []), ...novas] }).eq("id", ex.id).select().single();
+          if (r.error) return toast(erroTexto(r.error), "erro");
+          Object.assign(ex, r.data);
+          toast(`${nomesMod} adicionado ao cadastro de ${ex.nome}.`);
+          limparForm(f); listaAtletas(); f.nome.focus();
+          return;
+        }
+      }
+      const row = { nome, idade, sexo, graduacao, equipe, categorias };
       await comBotao($("#fAtlBtn"), async () => {
         const r = editando
           ? await sb.from("atletas").update(row).eq("id", editando).select().single()
@@ -228,16 +247,30 @@
 
   /* =================== CATEGORIAS =================== */
   function renderCategorias() {
-    const cont = c => S.atletas.filter(a => (a.categorias || []).includes(c.id)).length;
-    $("#sec-categorias").innerHTML = `<div class="page-head"><div><h2>Categorias</h2>
-        <p>${S.cats.length} categoria(s). Os professores escolhem entre elas ao inscrever os atletas.</p></div>
-        <span class="spacer"></span><button class="btn" id="novaCat" type="button">+ Adicionar categorias</button></div>
-      ${S.cats.length ? `<div class="card tab-wrap"><table class="tab cards"><thead><tr><th>Cód.</th><th>Categoria</th><th>Modalidade</th><th>Sexo</th><th>Idade</th><th>Faixas</th><th>Atletas</th><th></th></tr></thead><tbody>
-        ${S.cats.map(c => `<tr><td data-l="Cód."><span class="cod">${c.codigo ?? ""}</span></td><td data-l="Categoria"><b>${esc(c.nome)}</b></td>
-          <td data-l="Modalidade"><span class="chip ${c.modalidade}">${MOD[c.modalidade]}</span></td><td data-l="Sexo">${SEXO[c.sexo]}</td>
-          <td data-l="Idade">${esc(faixaIdade(c))}</td><td data-l="Faixas">${esc(c.faixas || "—")}</td><td data-l="Atletas">${cont(c)}</td>
-          <td class="acoes"><button class="linkbtn" type="button" data-ecat="${c.id}">Editar</button>&nbsp;&nbsp;<button class="linkbtn danger" type="button" data-dcat="${c.id}">Excluir</button></td></tr>`).join("")}
-        </tbody></table></div>`
+    const sec = $("#sec-categorias");
+    const abertas = new Set($$("details.cat-item[open]", sec).map(x => x.dataset.id));
+    sec.innerHTML = `<div class="page-head"><div><h2>Categorias</h2>
+        <p>${S.cats.length} categoria(s). Clique em uma categoria para ver os atletas inscritos nela.</p></div>
+        <span class="spacer"></span>
+        ${S.cats.length ? `<button class="btn alt" id="abrirCats" type="button">Mostrar atletas de todas</button>` : ""}
+        <button class="btn" id="novaCat" type="button">+ Adicionar categorias</button></div>
+      ${S.cats.length ? `<div class="cat-list">${S.cats.map(c => {
+        const l = atletasDaCat(c.id);
+        return `<details class="cat-item" data-id="${c.id}" ${abertas.has(c.id) ? "open" : ""}>
+          <summary>
+            <span class="cod-box" title="Código">${c.codigo ?? ""}</span>
+            <span class="n"><b>${esc(c.nome)}</b><small><span class="chip ${c.modalidade}">${MOD[c.modalidade]}</span> ${SEXO[c.sexo]} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""}</small></span>
+            <span class="qtd">${ICONE.seta} ${l.length} atleta(s)</span>
+            <span class="acoes-cat">
+              <button class="btn-ic" type="button" data-ecat="${c.id}" title="Editar categoria">${ICONE.editar} Editar</button>
+              <button class="btn-ic danger" type="button" data-dcat="${c.id}" title="Excluir categoria">${ICONE.excluir} Excluir</button>
+            </span>
+          </summary>
+          <div class="cat-atl">${l.length ? `<table class="tab cards"><thead><tr><th>Nome</th><th>Idade</th><th>Faixa</th><th>Equipe</th><th>Cadastrado por</th></tr></thead><tbody>
+            ${l.map(a => `<tr><td data-l="Nome"><b>${esc(a.nome)}</b></td><td data-l="Idade">${a.idade ?? ""}</td><td data-l="Faixa">${esc(a.graduacao || "")}</td>
+              <td data-l="Equipe">${esc(a.equipe || "")}</td><td data-l="Cadastrado por">${esc(a.created_by === user.id ? "Você" : (a.cadastrado_por_nome || ""))}</td></tr>`).join("")}
+            </tbody></table>` : `<p class="mut">Nenhum atleta inscrito nesta categoria.</p>`}</div>
+        </details>`; }).join("")}</div>`
       : `<div class="vazio-box"><h3>Nenhuma categoria ainda</h3><p>Adicione as categorias para os professores poderem inscrever os atletas.</p></div>`}`;
   }
   function modalCategorias(cat) {
@@ -291,22 +324,28 @@
   /* =================== CHAVES E SÚMULAS =================== */
   function estadoChave(c) {
     const ch = S.chaves[c.id];
-    if (!ch) return { cls: "", txt: "Ainda não sorteada" };
+    if (!ch) return { cls: "", txt: "Súmula ainda não gerada" };
     const d = Chave.diferencas(ch.dados, atletasDaCat(c.id));
-    return (d.novos || d.saiu) ? { cls: "mudou", txt: "Atletas mudaram depois do sorteio", d } : { cls: "ok", txt: "Sorteada", d };
+    return (d.novos || d.saiu) ? { cls: "mudou", txt: "Atletas mudaram depois do sorteio", d } : { cls: "ok", txt: "Súmula gerada", d };
   }
+  const catsComAtletas = () => S.cats.filter(c => atletasDaCat(c.id).length);
+  const catsSorteadas = () => S.cats.filter(c => S.chaves[c.id]);
   function renderChaves() {
     const sec = $("#sec-chaves");
     if (!S.cats.length) { sec.innerHTML = `<div class="vazio-box"><h3>Sem categorias</h3><p>Crie as categorias na aba <a href="#categorias">Categorias</a>.</p></div>`; return; }
     if (!S.catSel || !catById(S.catSel)) S.catSel = (S.cats.find(c => atletasDaCat(c.id).length) || S.cats[0]).id;
-    const comAtl = S.cats.filter(c => atletasDaCat(c.id).length);
-    const faltam = comAtl.filter(c => !S.chaves[c.id]).length;
-    const sorteadas = S.cats.filter(c => S.chaves[c.id]).length;
-    sec.innerHTML = `<div class="page-head"><div><h2>Chaves e súmulas</h2>
-        <p>${sorteadas} de ${comAtl.length} categoria(s) com atletas já sorteadas.</p></div><span class="spacer"></span>
-        <div class="row"><button class="btn alt" id="sumBranco" type="button">Súmula em branco</button>
-          <button class="btn alt" id="impTodas" type="button" ${sorteadas ? "" : "disabled"}>Imprimir todas (PDF)</button>
-          <button class="btn" id="sortFaltam" type="button" ${faltam ? "" : "disabled"}>Sortear as que faltam (${faltam})</button></div></div>
+    const comAtl = catsComAtletas(), sorteadas = catsSorteadas().length;
+    sec.innerHTML = `<div class="page-head"><div><h2>Súmulas</h2>
+        <p>${sorteadas} súmula(s) gerada(s). ${comAtl.length} categoria(s) com atletas.</p></div><span class="spacer"></span>
+        <button class="btn" id="sortTodas" type="button" ${comAtl.length ? "" : "disabled"}>Sortear todas</button></div>
+      <div class="card row" style="margin-bottom:18px">
+        <span class="mut small" style="margin-right:4px">Todas as súmulas:</span>
+        <button class="btn alt sm" id="pdfTodas" type="button" ${sorteadas ? "" : "disabled"}>${ICONE.pdf} Todas em um único PDF</button>
+        <button class="btn alt sm" id="zipTodas" type="button" ${sorteadas ? "" : "disabled"}>${ICONE.zip} Todas em ZIP (uma por arquivo)</button>
+        <button class="btn alt sm" id="sumBranco" type="button">${ICONE.pdf} Súmula em branco</button>
+        <span class="spacer"></span>
+        <button class="btn ghost sm perigo-txt" id="apagarTodas" type="button" ${sorteadas ? "" : "disabled"}>${ICONE.excluir} Apagar todas</button>
+      </div>
       <div class="chv-layout">
         <div class="chv-lista" id="chvLista">${S.cats.map(c => { const st = estadoChave(c); return `
           <button type="button" class="chv-item" data-cat="${c.id}" aria-current="${c.id === S.catSel}">
@@ -324,13 +363,14 @@
     box.innerHTML = `<div class="row"><div><h3>${c.codigo}. ${esc(c.nome)}</h3>
         <p class="mut small">${MOD[c.modalidade]} ${SEXO[c.sexo]} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""} — ${l.length} atleta(s)</p></div>
         <span class="spacer"></span>
-        <button class="btn ${ch ? "alt" : ""}" id="sortear" type="button" ${l.length ? "" : "disabled"}>${ch ? "Sortear de novo" : "Sortear chave"}</button>
-        <button class="btn ${ch ? "" : "alt"}" id="impUma" type="button" ${ch ? "" : "disabled"}>Imprimir súmula (PDF)</button></div>
-      ${mudou ? `<div class="aviso alerta">Depois do sorteio, ${mudou} nesta categoria. Sorteie de novo para atualizar a chave.</div>` : ""}
+        <button class="btn ${ch ? "alt" : ""} sm" id="sortear" type="button" ${l.length ? "" : "disabled"}>${ch ? "Sortear de novo" : "Sortear chave"}</button>
+        ${ch ? `<button class="btn sm" id="pdfUma" type="button">${ICONE.pdf} Baixar PDF</button>
+        <button class="btn-ic danger" id="apagarUma" type="button" title="Apagar esta súmula">${ICONE.excluir} Apagar</button>` : ""}</div>
+      ${mudou ? `<div class="aviso alerta">Depois do sorteio, ${mudou} nesta categoria. Sorteie de novo para atualizar a súmula.</div>` : ""}
       ${ch && ch.dados.conflitos ? `<div class="aviso alerta">Não deu para separar todos os atletas da mesma equipe na primeira luta (${ch.dados.conflitos} luta(s) entre colegas de equipe).</div>` : ""}
-      ${!l.length && !ch ? `<p class="mut">Nenhum atleta inscrito nesta categoria.</p>`
-        : ch ? `<div class="chv-svg">${Chave.svg(ch.dados)}</div><p class="mut small">Sorteada em ${new Date(ch.dados.em || ch.updated_at).toLocaleString("pt-BR")}. Os números nos círculos são a ordem das lutas.</p>`
-        : `<div><p class="mut" style="margin-bottom:6px">Atletas inscritos, ainda sem sorteio:</p><ol>${l.map(a => `<li>${esc(a.nome)}${a.equipe ? ` <span class="mut">(${esc(a.equipe)})</span>` : ""}</li>`).join("")}</ol></div>`}`;
+      ${ch ? `<div class="chv-svg">${Chave.svg(ch.dados)}</div><p class="mut small">Gerada em ${new Date(ch.dados.em || ch.updated_at).toLocaleString("pt-BR")}. Os números nos círculos são a ordem das lutas.</p>`
+        : l.length ? `<p class="mut">Esta categoria tem ${l.length} atleta(s). Clique em <b>Sortear chave</b> para gerar a súmula.</p>`
+        : `<p class="mut">Nenhum atleta inscrito nesta categoria.</p>`}`;
   }
   async function salvarChaves(lista) {
     const rows = lista.map(c => ({ categoria_id: c.id, competicao_id: id, dados: Chave.sortear(atletasDaCat(c.id)), updated_at: new Date().toISOString() }));
@@ -341,29 +381,98 @@
   }
   async function sortearUma() {
     const c = catById(S.catSel); if (!c) return;
-    if (S.chaves[c.id] && !await confirmar("Sortear esta categoria de novo? A chave atual será substituída.", { titulo: "Sortear de novo", ok: "Sortear de novo" })) return;
-    if (await salvarChaves([c])) { renderChaves(); toast("Chave sorteada."); }
+    if (S.chaves[c.id] && !await confirmar("Sortear esta categoria de novo? A súmula atual será substituída.", { titulo: "Sortear de novo", ok: "Sortear de novo" })) return;
+    if (await salvarChaves([c])) { renderChaves(); toast("Súmula gerada."); }
   }
-  async function sortearFaltam() {
-    const lista = S.cats.filter(c => atletasDaCat(c.id).length && !S.chaves[c.id]);
-    if (!lista.length) return;
-    if (await salvarChaves(lista)) { renderChaves(); toast(`${lista.length} chave(s) sorteada(s).`); }
+  function sortearTodas() {
+    const todas = catsComAtletas(), faltam = todas.filter(c => !S.chaves[c.id]);
+    if (!todas.length) return;
+    const executar = async (lista, dd) => {
+      if (dd) dd.close();
+      if (!lista.length) return toast("Todas as categorias já têm súmula.");
+      if (await salvarChaves(lista)) { renderChaves(); toast(`${lista.length} súmula(s) gerada(s).`); }
+    };
+    if (faltam.length === todas.length) return executar(todas);
+    modal({ titulo: "Sortear todas",
+      corpo: `<p>${todas.length - faltam.length} de ${todas.length} categoria(s) com atletas já têm súmula. O que você quer fazer?</p>`,
+      acoes: [{ texto: "Cancelar", classe: "alt" },
+        ...(faltam.length ? [{ texto: `Sortear só as que faltam (${faltam.length})`, classe: "alt", onClick: dd => executar(faltam, dd) }] : []),
+        { texto: `Sortear todas de novo (${todas.length})`, onClick: dd => executar(todas, dd) }] });
   }
-  function imprimirUma() {
-    const c = catById(S.catSel), ch = c && S.chaves[c.id]; if (!ch) return;
-    imprimir(folhaSumula(S.comp, c, ch.dados), { titulo: nomeArquivoCat(c) });
+  async function apagarUma() {
+    const c = catById(S.catSel); if (!c || !S.chaves[c.id]) return;
+    if (!await confirmar(`Apagar a súmula de <b>${esc(c.nome)}</b>? Os atletas continuam inscritos; só o sorteio é apagado.`, { titulo: "Apagar súmula", ok: "Apagar", perigo: true })) return;
+    const { error } = await sb.from("chaves").delete().eq("categoria_id", c.id);
+    if (error) return toast(erroTexto(error), "erro");
+    delete S.chaves[c.id]; renderChaves(); toast("Súmula apagada.");
   }
-  function imprimirTodas() {
-    const cs = S.cats.filter(c => S.chaves[c.id]);
-    if (!cs.length) return;
-    imprimir(cs.map(c => folhaSumula(S.comp, c, S.chaves[c.id].dados)).join(""), { titulo: `Sumulas - ${S.comp.nome}`.replace(/[\\/:*?"<>|]/g, "") });
+  async function apagarTodas() {
+    const n = catsSorteadas().length; if (!n) return;
+    if (!await confirmar(`Apagar as ${n} súmula(s) geradas? Os atletas continuam inscritos; só os sorteios são apagados.`, { titulo: "Apagar todas as súmulas", ok: "Apagar todas", perigo: true })) return;
+    const { error } = await sb.from("chaves").delete().eq("competicao_id", id);
+    if (error) return toast(erroTexto(error), "erro");
+    S.chaves = {}; renderChaves(); toast("Súmulas apagadas.");
+  }
+
+  /* ----- arquivos ----- */
+  let gerando = false;
+  async function comProgresso(btn, fn) {
+    if (gerando) return; gerando = true;
+    const t = btn.innerHTML; btn.disabled = true;
+    try { await fn(txt => { btn.textContent = txt; }); }
+    catch (e) { console.error(e); toast("Não foi possível gerar o arquivo neste navegador. Tente pelo Google Chrome.", "erro"); }
+    finally { btn.innerHTML = t; btn.disabled = false; gerando = false; }
+  }
+  async function paginasDe(cats, aviso) {
+    const out = [];
+    for (let i = 0; i < cats.length; i++) {
+      aviso(`Gerando ${i + 1} de ${cats.length}…`); await esperar(10);
+      out.push({ cat: cats[i], pagina: await paginaSumula(S.comp, cats[i], S.chaves[cats[i].id].dados) });
+    }
+    return out;
+  }
+  const nomeComp = () => nomeSeguro(S.comp.nome);
+  function pdfUma(btn) {
+    const c = catById(S.catSel); if (!c || !S.chaves[c.id]) return;
+    comProgresso(btn, async aviso => {
+      aviso("Gerando…");
+      const pg = await paginaSumula(S.comp, c, S.chaves[c.id].dados);
+      baixarBlob(criarPDF([pg]), nomeArquivoSumula(c) + ".pdf");
+    });
+  }
+  function pdfTodas(btn) {
+    const cs = catsSorteadas(); if (!cs.length) return;
+    comProgresso(btn, async aviso => {
+      const pgs = await paginasDe(cs, aviso);
+      baixarBlob(criarPDF(pgs.map(p => p.pagina)), `Súmulas - ${nomeComp()}.pdf`);
+      toast(`${pgs.length} súmula(s) em um único PDF.`);
+    });
+  }
+  function zipTodas(btn) {
+    const cs = catsSorteadas(); if (!cs.length) return;
+    comProgresso(btn, async aviso => {
+      const pgs = await paginasDe(cs, aviso);
+      aviso("Montando o ZIP…"); await esperar(10);
+      const pasta = `Súmulas - ${nomeComp()}`, usados = new Set();
+      const arquivos = pgs.map(({ cat, pagina }) => {
+        let nome = nomeArquivoSumula(cat), k = 2;
+        while (usados.has(nome.toLowerCase())) nome = `${nomeArquivoSumula(cat)} (${k++})`;
+        usados.add(nome.toLowerCase());
+        return { nome: `${pasta}/${nome}.pdf`, dados: criarPDFBytes([pagina]) };
+      });
+      baixarBlob(criarZIP(arquivos), `${pasta}.zip`);
+      toast(`${arquivos.length} súmula(s) no ZIP.`);
+    });
   }
   function sumulaBranco() {
     modal({ titulo: "Súmula em branco", corpo: `<p class="mut">Para preencher à mão no dia da competição.</p>
       <label class="field">Quantidade de atletas<select id="tamBranco"><option value="2">2 atletas</option><option value="4">4 atletas</option><option value="8" selected>8 atletas</option><option value="16">16 atletas</option><option value="32">32 atletas</option></select></label>`,
-      acoes: [{ texto: "Cancelar", classe: "alt" }, { texto: "Imprimir (PDF)", onClick: dd => {
+      acoes: [{ texto: "Cancelar", classe: "alt" }, { texto: "Baixar PDF", onClick: async dd => {
         const n = +$("#tamBranco", dd).value; dd.close();
-        imprimir(folhaSumula(S.comp, null, Chave.vazia(n)), { titulo: `Sumula em branco - ${n} atletas` });
+        try {
+          const pg = await paginaSumula(S.comp, null, Chave.vazia(n));
+          baixarBlob(criarPDF([pg]), `Súmula em branco - ${n} atletas.pdf`);
+        } catch (e) { console.error(e); toast("Não foi possível gerar o PDF neste navegador. Tente pelo Google Chrome.", "erro"); }
       } }] });
   }
 
@@ -451,8 +560,8 @@
     const d = t.dataset;
     if (d.edit) return editar(S.atletas.find(a => a.id === d.edit));
     if (d.del) return removerAtleta(d.del);
-    if (d.ecat) return modalCategorias(catById(d.ecat));
-    if (d.dcat) return excluirCategoria(d.dcat);
+    if (d.ecat) { e.preventDefault(); return modalCategorias(catById(d.ecat)); }
+    if (d.dcat) { e.preventDefault(); return excluirCategoria(d.dcat); }
     if (d.cat) {
       S.catSel = d.cat;
       $$("#chvLista .chv-item").forEach(b => b.setAttribute("aria-current", String(b.dataset.cat === d.cat)));
@@ -463,12 +572,16 @@
     if (d.rmem) return removerMembro(d.rmem);
     if (d.cconv) return apagarConvite(d.cconv);
     switch (t.id) {
-      case "btnLista": return imprimir(folhaListaAtletas(S.comp, S.cats, S.atletas, true), { titulo: `Atletas - ${S.comp.nome}`.replace(/[\\/:*?"<>|]/g, ""), paisagem: false });
+      case "btnLista": return imprimir(folhaListaAtletas(S.comp, S.cats, S.atletas), { titulo: `Atletas - ${nomeSeguro(S.comp.nome)}`, paisagem: false });
       case "novaCat": return modalCategorias();
+      case "abrirCats": { const ds = $$("#sec-categorias details.cat-item"), abrir = ds.some(x => !x.open); ds.forEach(x => { x.open = abrir; }); t.textContent = abrir ? "Recolher todas" : "Mostrar atletas de todas"; return; }
       case "sortear": return sortearUma();
-      case "sortFaltam": return sortearFaltam();
-      case "impUma": return imprimirUma();
-      case "impTodas": return imprimirTodas();
+      case "sortTodas": return sortearTodas();
+      case "pdfUma": return pdfUma(t);
+      case "pdfTodas": return pdfTodas(t);
+      case "zipTodas": return zipTodas(t);
+      case "apagarUma": return apagarUma();
+      case "apagarTodas": return apagarTodas();
       case "sumBranco": return sumulaBranco();
       case "salvarDados": return salvarDados(t);
       case "excluirComp": return excluirCompeticao();

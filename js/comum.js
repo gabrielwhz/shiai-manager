@@ -1,6 +1,6 @@
 "use strict";
 /* Código comum a todas as páginas. */
-const BUILD = 3;
+const BUILD = 4;
 console.log("Shiai Manager build " + BUILD);
 
 const CFG = window.APP_CONFIG || {};
@@ -15,6 +15,14 @@ const cmpNome = (a, b) => String(a || "").trim().localeCompare(String(b || "").t
 const norm = s => String(s || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const SEXO = { M: "Masculino", F: "Feminino", X: "Misto" };
+const _ic = d => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICONE = {
+  editar: _ic('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+  excluir: _ic('<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>'),
+  pdf: _ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 12v6M9 15l3 3 3-3"/>'),
+  zip: _ic('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v6M9 14l3 3 3-3"/>'),
+  seta: _ic('<path d="m9 6 6 6-6 6"/>')
+};
 const MOD = { kata: "Kata", kumite: "Kumitê" };
 const FAIXAS = ["Branca", "Amarela", "Vermelha", "Laranja", "Verde", "Roxa", "Marrom", "Preta"];
 
