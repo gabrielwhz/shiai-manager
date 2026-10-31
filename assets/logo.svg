@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Administrador de Campeonatos">
+  <rect width="64" height="64" rx="15" fill="#15203B"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="M13 18h13v14" stroke="#E5404F"/>
+    <path d="M13 46h13V32" stroke="#4C7EEA"/>
+    <path d="M26 32h14" stroke="#FFFFFF"/>
+  </g>
+  <circle cx="47" cy="32" r="6.5" fill="#F2B21B"/>
+</svg>
