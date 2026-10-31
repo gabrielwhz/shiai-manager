@@ -6,5 +6,5 @@ window.APP_CONFIG = {
 
   // Link para baixar o Placar de Karatê (Windows). Ex.: o link do arquivo no GitHub Releases.
   // Deixe "" enquanto não tiver o link: o botão de download fica escondido.
-  PLACAR_DOWNLOAD_URL: ""
+  PLACAR_DOWNLOAD_URL: "https://github.com"
 };
