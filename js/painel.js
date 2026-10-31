@@ -11,7 +11,7 @@
     const n = notifAtiva();
     $("#abaComp").hidden = n; $("#abaNotif").hidden = !n;
     $$(".topo nav a").forEach(a => a.setAttribute("aria-current", (a.hash === "#notificacoes") === n ? "page" : "false"));
-    document.title = (n ? "Notificações" : "Minhas competições") + " — Administrador de Campeonatos";
+    document.title = (n ? "Notificações" : "Minhas competições") + " — Shiai Manager";
     if (n) carregarNotificacoes();
   }
   window.addEventListener("hashchange", aba);
@@ -49,7 +49,7 @@
           const { data: comp, error } = await sb.from("competicoes").insert({ ...lido.dados, owner_id: user.id }).select("id").single();
           if (error) return toast(erroTexto(error), "erro");
           if (lido.categorias.length) {
-            const linhas = lido.categorias.map((c, i) => { const { id, ...r } = c; return { ...r, competicao_id: comp.id, codigo: i + 1 }; });
+            const linhas = atribuirCodigos(lido.categorias).map(c => { const { id, ...r } = c; return { ...r, competicao_id: comp.id }; });
             const { error: e2 } = await sb.from("categorias").insert(linhas);
             if (e2) toast("A competição foi criada, mas as categorias não foram salvas: " + erroTexto(e2), "erro");
           }

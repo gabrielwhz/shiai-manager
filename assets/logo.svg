@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Administrador de Campeonatos">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shiai Manager">
   <rect width="64" height="64" rx="15" fill="#15203B"/>
   <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
     <path d="M13 18h13v14" stroke="#E5404F"/>

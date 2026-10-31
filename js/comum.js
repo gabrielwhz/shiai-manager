@@ -1,7 +1,7 @@
 "use strict";
 /* Código comum a todas as páginas. */
-const BUILD = 2;
-console.log("Administrador de Campeonatos build " + BUILD);
+const BUILD = 3;
+console.log("Shiai Manager build " + BUILD);
 
 const CFG = window.APP_CONFIG || {};
 const CONFIG_OK = !!CFG.SUPABASE_URL && !/COLE_AQUI/.test(CFG.SUPABASE_URL) &&
@@ -20,6 +20,11 @@ const FAIXAS = ["Branca", "Amarela", "Vermelha", "Laranja", "Verde", "Roxa", "Ma
 
 function iniciais(t) {
   return String(t || "?").trim().split(/\s+/).filter(w => w.length > 2 || /^\p{Lu}/u.test(w)).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
+}
+function avatarHTML(p, cls = "av") {
+  return p && p.avatar
+    ? `<img class="${cls}" src="${esc(p.avatar)}" alt="">`
+    : `<span class="${cls}" aria-hidden="true">${esc(iniciais(p && (p.nome || p.email)))}</span>`;
 }
 function logoHTML(comp, cls = "comp-logo") {
   return comp && comp.logo
@@ -75,6 +80,9 @@ function erroTexto(e) {
   if (/Email not confirmed/i.test(m)) return "Confirme o seu e-mail antes de entrar. Procure a mensagem na sua caixa de entrada.";
   if (/rate limit/i.test(m)) return "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.";
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Sem conexão com o servidor. Verifique a internet.";
+  if (/categorias_codigo_idx/i.test(m)) return "Já existe uma categoria com esse código nesta competição.";
+  if (/should be different from the old/i.test(m)) return "A nova senha precisa ser diferente da senha atual.";
+  if (/session missing|Auth session/i.test(m)) return "O link expirou ou já foi usado. Peça um novo link.";
   if (/row-level security|permission denied/i.test(m)) return "Você não tem permissão para fazer isso nesta competição.";
   return m;
 }
@@ -113,8 +121,8 @@ function confirmar(texto, { titulo = "Confirmar", ok = "Confirmar", perigo = fal
   });
 }
 async function comBotao(btn, fn) {
-  const t = btn.textContent; btn.disabled = true; btn.textContent = "Salvando…";
-  try { return await fn(); } finally { btn.disabled = false; if (btn.textContent === "Salvando…") btn.textContent = t; }
+  const t = btn.textContent; btn.disabled = true; btn.textContent = "Aguarde…";
+  try { return await fn(); } finally { btn.disabled = false; if (btn.textContent === "Aguarde…") btn.textContent = t; }
 }
 
 /* Reduz a logo para no máximo 320 px, para guardar no banco como texto. */
@@ -156,19 +164,20 @@ async function iniciarPagina(ativa) {
   if (!perfil) perfil = { id: user.id, nome: (user.user_metadata && user.user_metadata.nome) || "", email: user.email };
   montarTopo(perfil, ativa);
   atualizarSino(user.id);
-  sb.auth.onAuthStateChange(ev => { if (ev === "SIGNED_OUT") location.replace("login.html"); });
+  sb.auth.onAuthStateChange(ev => { if (ev === "SIGNED_OUT" && !window.__semRedirect) location.replace("login.html"); });
   return { user, perfil };
 }
 
 function montarTopo(perfil, ativa) {
+  const velho = $("header.topo"); if (velho) velho.remove();
   const h = document.createElement("header");
   h.className = "topo";
   h.innerHTML = `<div class="topo-in">
-    <a class="marca" href="painel.html"><img src="../assets/logo.svg" alt=""><span><small>Administrador de</small><b>Campeonatos</b></span></a>
+    <a class="marca" href="painel.html"><img src="../assets/logo.svg" alt=""><span><b>Shiai Manager</b><small>Campeonatos de karatê</small></span></a>
     <nav aria-label="Principal">
       <a href="painel.html" ${ativa === "comp" ? 'aria-current="page"' : ""}>Competições</a>
       <a href="painel.html#notificacoes" ${ativa === "notif" ? 'aria-current="page"' : ""}>Notificações<span class="badge" id="sino" hidden></span></a>
-      <span class="quem" title="${esc(perfil.email)}">${esc(perfil.nome || perfil.email)}</span>
+      <a href="conta.html" class="eu" title="Minha conta" ${ativa === "conta" ? 'aria-current="page"' : ""}>${avatarHTML(perfil)}<span class="quem">${esc(perfil.nome || perfil.email)}</span></a>
       <button type="button" id="sair">Sair</button>
     </nav></div>`;
   document.body.prepend(h);
@@ -187,6 +196,7 @@ async function atualizarSino(uid) {
 function linhaCategoriaHTML(c = {}) {
   const sel = (v, o) => v === o ? "selected" : "";
   return `<div class="cat-row" data-id="${esc(c.id || "")}">
+    <label class="field c-cod">Código<input name="codigo" type="number" min="1" max="99999" inputmode="numeric" value="${c.codigo ?? ""}" placeholder="auto" title="Deixe em branco para numerar automaticamente"></label>
     <label class="field c-nome">Nome da categoria<input name="nome" value="${esc(c.nome || "")}" placeholder="Ex.: Infantil 9 e 10 anos" maxlength="100"></label>
     <label class="field">Modalidade<select name="modalidade"><option value="kata" ${sel(c.modalidade, "kata")}>Kata</option><option value="kumite" ${sel(c.modalidade, "kumite")}>Kumitê</option></select></label>
     <label class="field">Sexo<select name="sexo"><option value="M" ${sel(c.sexo, "M")}>Masculino</option><option value="F" ${sel(c.sexo, "F")}>Feminino</option><option value="X" ${sel(c.sexo, "X")}>Misto</option></select></label>
@@ -214,22 +224,30 @@ function bindLinhasCategoria(box, addBtn, { minimo = 0 } = {}) {
 function num(v) { return v === "" || v == null ? null : parseInt(v, 10); }
 function lerLinha(row) {
   const g = n => row.querySelector(`[name=${n}]`).value.trim();
-  return { id: row.dataset.id || null, nome: g("nome"), modalidade: g("modalidade"), sexo: g("sexo"),
+  return { id: row.dataset.id || null, codigo: num(g("codigo")), nome: g("nome"), modalidade: g("modalidade"), sexo: g("sexo"),
            idade_min: num(g("idade_min")), idade_max: num(g("idade_max")), faixas: g("faixas") || null };
 }
 function lerLinhasCategoria(box) {
   const out = [];
   for (const row of $$(".cat-row", box)) {
     const c = lerLinha(row);
-    const vazia = !c.nome && c.idade_min == null && c.idade_max == null && !c.faixas;
+    const vazia = !c.nome && c.codigo == null && c.idade_min == null && c.idade_max == null && !c.faixas;
     if (vazia) continue;
     if (!c.nome) { row.querySelector("[name=nome]").focus(); throw new Error("Dê um nome para cada categoria."); }
+    if (c.codigo != null && (isNaN(c.codigo) || c.codigo < 1)) { row.querySelector("[name=codigo]").focus(); throw new Error(`O código da categoria "${c.nome}" precisa ser um número a partir de 1.`); }
+    if (c.codigo != null && out.some(o => o.codigo === c.codigo)) { row.querySelector("[name=codigo]").focus(); throw new Error(`O código ${c.codigo} está repetido na lista.`); }
     if (c.idade_min != null && c.idade_max != null && c.idade_min > c.idade_max) {
       row.querySelector("[name=idade_min]").focus(); throw new Error(`Na categoria "${c.nome}", a idade inicial é maior que a final.`);
     }
     out.push(c);
   }
   return out;
+}
+
+/* Dá código às categorias sem código: continua a partir do maior código já usado. */
+function atribuirCodigos(lista, usados = []) {
+  let max = Math.max(0, ...usados, ...lista.map(c => c.codigo || 0));
+  return lista.map(c => ({ ...c, codigo: c.codigo != null ? c.codigo : ++max }));
 }
 
 function formCompeticaoHTML(comp = {}, comCategorias = true) {
@@ -248,7 +266,7 @@ function formCompeticaoHTML(comp = {}, comCategorias = true) {
       <button type="button" class="btn alt sm" id="addData">+ Adicionar outro dia</button></fieldset>
     <label class="field">Federação<input name="federacao" maxlength="120" value="${esc(comp.federacao || "")}" placeholder="Ex.: Federação Baiana de Karatê"></label>
     ${comCategorias ? `<fieldset><legend>Categorias</legend>
-      <p class="mut small" style="margin-bottom:10px">Você pode adicionar ou mudar categorias depois, dentro da competição.</p>
+      <p class="mut small" style="margin-bottom:10px">Deixe o código em branco para numerar automaticamente. Você pode adicionar ou mudar categorias depois, dentro da competição.</p>
       <div class="cat-rows" id="catRows"></div>
       <button type="button" class="btn alt sm" id="addCat" style="margin-top:10px">+ Adicionar categoria</button></fieldset>` : ""}
   </form>`;

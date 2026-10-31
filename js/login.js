@@ -16,11 +16,29 @@
     $("#campoNome").hidden = !criar;
     $("#enviar").textContent = criar ? "Criar conta" : "Entrar";
     f.senha.autocomplete = criar ? "new-password" : "current-password";
+    $("#esqueci").hidden = criar;
     mostrar("");
     return criar;
   }
   window.addEventListener("hashchange", modo);
   modo();
+  if (new URLSearchParams(location.search).get("conta") === "excluida") mostrar("Sua conta foi excluída.", "ok");
+
+  $("#esqueci").onclick = () => modal({
+    titulo: "Esqueci minha senha",
+    corpo: `<p class="mut">Digite o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.</p>
+      <label class="field">E-mail<input type="email" id="emailRec" autocomplete="email" value="${esc(f.email.value.trim())}"></label>`,
+    acoes: [{ texto: "Cancelar", classe: "alt" }, { texto: "Enviar link", onClick: async dd => {
+      const email = $("#emailRec", dd).value.trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(email)) return toast("Digite um e-mail válido.", "erro");
+      await comBotao(dd.querySelector(".modal-foot .btn:last-child"), async () => {
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: new URL("nova-senha.html", location.href).href });
+        if (error) return toast(erroTexto(error), "erro");
+        dd.close();
+        mostrar("Se existir uma conta com esse e-mail, o link para criar a nova senha chega em alguns minutos. Confira também a caixa de spam.", "ok");
+      });
+    } }]
+  });
 
   f.addEventListener("submit", async e => {
     e.preventDefault();

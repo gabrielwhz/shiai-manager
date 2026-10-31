@@ -19,7 +19,7 @@
   const { data: comp, error } = await sb.from("competicoes").select("*").eq("id", id).maybeSingle();
   if (error || !comp) return naoEncontrada(error);
   S.comp = comp; S.dono = comp.owner_id === user.id;
-  document.title = comp.nome + " — Administrador de Campeonatos";
+  document.title = comp.nome + " — Shiai Manager";
 
   const ABAS = S.dono
     ? [["atletas", "Atletas"], ["categorias", "Categorias"], ["chaves", "Chaves e súmulas"], ["equipe", "Professores"], ["dados", "Dados da competição"]]
@@ -251,12 +251,16 @@
         await comBotao(dd.querySelector(".modal-foot .btn:last-child"), async () => {
           if (editando) {
             const { id: _x, ...row } = lista[0];
+            if (row.codigo == null) row.codigo = cat.codigo;
+            const igual = S.cats.find(c => c.id !== cat.id && c.codigo === row.codigo);
+            if (igual) return toast(`O código ${row.codigo} já é da categoria "${igual.nome}".`, "erro");
             const r = await sb.from("categorias").update(row).eq("id", cat.id).select().single();
             if (r.error) return toast(erroTexto(r.error), "erro");
             Object.assign(cat, r.data); toast("Categoria atualizada.");
           } else {
-            let cod = Math.max(0, ...S.cats.map(c => c.codigo || 0));
-            const rows = lista.map(c => { const { id: _x, ...r } = c; return { ...r, competicao_id: id, codigo: ++cod }; });
+            const igual = lista.map(n => S.cats.find(c => n.codigo != null && c.codigo === n.codigo)).find(Boolean);
+            if (igual) return toast(`O código ${igual.codigo} já é da categoria "${igual.nome}".`, "erro");
+            const rows = atribuirCodigos(lista, S.cats.map(c => c.codigo || 0)).map(c => { const { id: _x, ...r } = c; return { ...r, competicao_id: id }; });
             const r = await sb.from("categorias").insert(rows).select();
             if (r.error) return toast(erroTexto(r.error), "erro");
             S.cats.push(...r.data); toast(`${r.data.length} categoria(s) adicionada(s).`);
@@ -425,7 +429,7 @@
     await comBotao(btn, async () => {
       const r = await sb.from("competicoes").update(lido.dados).eq("id", id).select().single();
       if (r.error) return toast(erroTexto(r.error), "erro");
-      S.comp = r.data; hero(); document.title = S.comp.nome + " — Administrador de Campeonatos"; toast("Alterações salvas.");
+      S.comp = r.data; hero(); document.title = S.comp.nome + " — Shiai Manager"; toast("Alterações salvas.");
     });
   }
   async function excluirCompeticao() {

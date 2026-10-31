@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Competição — Administrador de Campeonatos</title>
+<title>Competição — Shiai Manager</title>
 <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Administrador de Campeonatos — estilo
+/* Shiai Manager — estilo
    Paleta do tatame: azul-marinho, AKA (vermelho), AO (azul) e ouro só para o campeão. */
 :root{
   box-sizing:border-box;
@@ -85,12 +85,22 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .marca{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
 .marca img{width:36px;height:36px}
 .marca b{display:block;font:700 1.25rem/1 var(--display);letter-spacing:.3px}
-.marca small{display:block;font-size:.72rem;color:#AEB8CF;line-height:1.1}
+.marca small{display:block;font-size:.72rem;color:#AEB8CF;line-height:1.1;margin-top:2px}
 .topo nav{display:flex;gap:4px;margin-left:auto;align-items:center}
 .topo nav a,.topo nav button{color:#DCE2EE;text-decoration:none;font-weight:600;font-size:15px;padding:8px 12px;border-radius:var(--r-s);background:none;border:0;cursor:pointer;position:relative;font-family:var(--body)}
 .topo nav a:hover,.topo nav button:hover{background:rgba(255,255,255,.08);color:#fff}
 .topo nav a[aria-current="page"]{color:#fff;background:rgba(255,255,255,.1)}
 .badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--aka);color:#fff;font-size:12px;font-weight:700;margin-left:4px}
+.topo nav a.eu{display:flex;align-items:center;gap:8px}
+.av{width:30px;height:30px;border-radius:50%;object-fit:cover;display:inline-grid;place-items:center;flex:none;background:#2A3654;color:#fff;font:700 12px/1 var(--body);border:2px solid rgba(255,255,255,.25)}
+.av.grande{width:104px;height:104px;font-size:34px;border:1px solid var(--line);background:var(--soft);color:var(--mut)}
+.conta-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.conta-grid .card h2{margin-bottom:4px}
+.foto-pick{display:flex;gap:18px;align-items:center}
+.card.perigo{border-color:var(--aka)}
+.card.perigo h2{color:var(--aka)}
+.box-centro{min-height:100%;display:grid;place-items:center;padding:30px 18px}
+.box-centro .card{width:100%;max-width:440px}
 .quem{color:#AEB8CF;font-size:14px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:6px}
 
 main{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
@@ -186,7 +196,7 @@ table.tab{width:100%;border-collapse:collapse;font-size:.95rem}
 
 /* editor de categorias (linhas) */
 .cat-rows{display:grid;gap:10px}
-.cat-row{display:grid;grid-template-columns:minmax(160px,2.2fr) 1fr 1fr 70px 70px minmax(100px,1.3fr) 36px;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--soft)}
+.cat-row{display:grid;grid-template-columns:72px minmax(150px,2.2fr) 1fr 1fr 66px 66px minmax(100px,1.3fr) 36px;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--soft)}
 .cat-row .field{font-size:.78rem}
 .cat-row input,.cat-row select{padding:8px 9px;font-size:15px}
 .cat-row .rm{height:38px;width:36px;border:1px solid var(--line);background:var(--card);border-radius:var(--r-s);cursor:pointer;color:var(--aka);font-size:18px;line-height:1}
@@ -235,11 +245,12 @@ dialog.modal[open]{display:flex;flex-direction:column;animation:abre .18s ease-o
 
 /* ---------- celular ---------- */
 @media (max-width:980px){
-  .atl-layout,.chv-layout,.painel-lado{grid-template-columns:1fr}
+  .atl-layout,.chv-layout,.painel-lado,.conta-grid{grid-template-columns:1fr}
   .atl-form{position:static}
   .chv-lista{max-height:none;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   .cat-row{grid-template-columns:1fr 1fr 1fr;}
-  .cat-row .c-nome,.cat-row .c-faixas{grid-column:1/-1}
+  .cat-row .c-nome{grid-column:2/-1}
+  .cat-row .c-faixas{grid-column:1/-1}
   .cat-row .rm{justify-self:end;grid-column:3}
 }
 @media (max-width:760px){
@@ -312,8 +323,8 @@ dialog.modal[open]{display:flex;flex-direction:column;animation:abre .18s ease-o
 <datalist id="listaFaixas"></datalist>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="../js/config.js"></script>
-<script src="../js/comum.js?v=2"></script>
-<script src="../js/chave.js?v=2"></script>
-<script src="../js/competicao.js?v=2"></script>
+<script src="../js/comum.js?v=3"></script>
+<script src="../js/chave.js?v=3"></script>
+<script src="../js/competicao.js?v=3"></script>
 </body>
 </html>
