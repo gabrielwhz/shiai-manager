@@ -2,6 +2,10 @@
 (async function () {
   const notifAtiva = () => location.hash === "#notificacoes";
   const { user, perfil } = await iniciarPagina(notifAtiva() ? "notif" : "comp");
+  if (new URLSearchParams(location.search).get("confirmado")) {
+    history.replaceState(null, "", "painel.html" + location.hash);
+    toast(`E-mail confirmado. Bem-vindo ao Shiai Manager${perfil.nome ? ", " + perfil.nome.split(" ")[0] : ""}!`);
+  }
 
   // Placar para Windows
   if (CFG.PLACAR_DOWNLOAD_URL) { $("#placarLink").hidden = false; $("#placarLink").href = CFG.PLACAR_DOWNLOAD_URL; }

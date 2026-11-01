@@ -1,6 +1,6 @@
 "use strict";
 /* Código comum a todas as páginas. */
-const BUILD = 4;
+const BUILD = 5;
 console.log("Shiai Manager build " + BUILD);
 
 const CFG = window.APP_CONFIG || {};
@@ -86,6 +86,7 @@ function erroTexto(e) {
   if (/already registered|already been registered/i.test(m)) return "Já existe uma conta com esse e-mail. Use a opção Entrar.";
   if (/Password should be at least/i.test(m)) return "A senha precisa ter pelo menos 6 caracteres.";
   if (/Email not confirmed/i.test(m)) return "Confirme o seu e-mail antes de entrar. Procure a mensagem na sua caixa de entrada.";
+  if (/For security purposes, you can only request this after/i.test(m)) return "Aguarde um minuto antes de pedir outro e-mail.";
   if (/rate limit/i.test(m)) return "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.";
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Sem conexão com o servidor. Verifique a internet.";
   if (/categorias_codigo_idx/i.test(m)) return "Já existe uma categoria com esse código nesta competição.";
@@ -164,9 +165,11 @@ function telaSemConfig() {
 }
 
 async function iniciarPagina(ativa) {
-  if (!sb) { telaSemConfig(); throw new Error("sem configuração"); }
+  if (!sb) { telaSemConfig(); return new Promise(() => {}); }
+  // link do e-mail vencido ou já usado: mostra o aviso na tela de login
+  if (/error_code=|error=/.test(location.hash)) { location.replace("login.html" + location.hash); return new Promise(() => {}); }
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { location.replace("login.html"); throw new Error("sem sessão"); }
+  if (!session) { location.replace("login.html"); return new Promise(() => {}); }
   const user = session.user;
   let { data: perfil } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (!perfil) perfil = { id: user.id, nome: (user.user_metadata && user.user_metadata.nome) || "", email: user.email };
