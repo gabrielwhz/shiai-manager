@@ -11,7 +11,6 @@
 </p>
 
 <p align="center">
-  <img alt="Gratuito" src="https://img.shields.io/badge/gratuito-15203B?style=flat-square">
   <img alt="Funciona no celular" src="https://img.shields.io/badge/funciona_no_celular-15203B?style=flat-square">
   <img alt="Sem instalação" src="https://img.shields.io/badge/sem_instalação-15203B?style=flat-square">
   <img alt="Placar offline" src="https://img.shields.io/badge/placar_funciona_sem_internet-15203B?style=flat-square">
@@ -23,7 +22,7 @@
 
 **Shiai** (試合) significa *competição* em japonês.
 
-O **Shiai Manager** é um sistema gratuito para organizar campeonatos de karatê. O organizador cria a competição e as categorias, e cada professor inscreve os próprios alunos pela conta dele. No dia do evento, as chaves são sorteadas em um clique, as súmulas saem prontas em PDF e o placar eletrônico mostra as lutas na TV.
+O **Shiai Manager** é um sistema para organizar campeonatos de karatê. O organizador cria a competição e as categorias, e cada professor inscreve os próprios alunos pela conta dele. No dia do evento, as chaves são sorteadas em um clique, as súmulas saem prontas em PDF e o placar eletrônico mostra as lutas na TV.
 
 Não precisa instalar nada para usar o site: ele funciona no navegador do computador, do tablet e do celular.
 
@@ -204,12 +203,6 @@ Os dados da luta ficam salvos mesmo se o programa for fechado.
 <a id="faq"></a>
 
 ## ❓ Perguntas frequentes
-
-<details>
-<summary><b>O Shiai Manager é pago?</b></summary>
-
-Não. O uso é gratuito.
-</details>
 
 <details>
 <summary><b>O e-mail de confirmação ou de senha não chegou.</b></summary>
