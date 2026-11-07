@@ -1,0 +1,24 @@
+Shiai Manager
+Copyright (c) 2026 Gabriel Araújo. Todos os direitos reservados.
+
+O Shiai Manager, incluindo o site, o placar eletrônico, o código-fonte, o nome,
+a logo e o visual, é de propriedade de Gabriel Araújo.
+
+É permitido usar gratuitamente o serviço disponível em https://shiai-manager.pages.dev
+e o placar eletrônico distribuído oficialmente, para organizar competições.
+
+Sem autorização prévia e por escrito do autor, não é permitido:
+  - copiar, modificar, publicar ou distribuir o código-fonte, no todo ou em parte;
+  - criar outro produto ou serviço a partir deste código;
+  - vender, sublicenciar ou disponibilizar o software a terceiros;
+  - usar o nome "Shiai Manager" ou a logo em outros produtos.
+
+O fato de o código estar visível neste repositório não concede nenhuma dessas permissões.
+
+O software é fornecido "como está", sem garantias de qualquer tipo. O autor não se
+responsabiliza por danos ou perdas decorrentes do uso.
+
+Componentes de terceiros mantêm as próprias licenças: Supabase JS (MIT),
+Electron (MIT), Chromium (licenças incluídas no placar) e a fonte Barlow (SIL Open Font License 1.1).
+
+Contato: shiaimanager@gmail.com
