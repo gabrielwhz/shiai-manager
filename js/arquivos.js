@@ -24,12 +24,14 @@ function nomeSeguro(t) {
 function criarPDFBytes(paginas) {
   const partes = [], offsets = [];
   let pos = 0;
+
   const put = x => {
     const b = typeof x === "string" ? _enc.encode(x) : x;
 
     partes.push(b);
     pos += b.length;
   };
+
   const obj = (n, corpo) => {
     offsets[n] = pos;
     put(`${n} 0 obj\n`);
@@ -50,6 +52,7 @@ function criarPDFBytes(paginas) {
     const conteudo = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
 
     obj(pg(i), () => put(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${pg(i) + 2} 0 R >> >> /Contents ${pg(i) + 1} 0 R >>`));
+
     obj(pg(i) + 1, () => {
       put(`<< /Length ${conteudo.length} >>\nstream\n`);
       put(conteudo);

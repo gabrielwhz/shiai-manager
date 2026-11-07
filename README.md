@@ -78,6 +78,7 @@ Na aba **Categorias**, clique em **+ Adicionar categorias**. Cada categoria tem:
 - **Código:** o número que aparece na súmula. Deixe em branco para numerar automaticamente.
 - **Nome**, **modalidade** (Kata ou Kumitê) e **sexo** (masculino, feminino ou misto).
 - **Idade de / até** e, se quiser, as **faixas** aceitas.
+- **PCD:** marque quando a categoria for para atletas com deficiência. Ela só aparece para os atletas cadastrados como PCD.
 
 Use **+ Adicionar outra categoria** para cadastrar várias de uma vez. Clique numa categoria para ver os atletas inscritos nela, ou em **Mostrar atletas de todas**.
 
@@ -131,7 +132,8 @@ Na aba **Dados da competição**, você muda o nome, o local, as datas, a federa
 
 1. **Aceite o convite:** abra **Notificações** no topo da tela e clique em **Aceitar**.
 2. **Cadastre os alunos:** na competição, preencha nome, idade, sexo, faixa e equipe. Marque **Kata**, **Kumitê** ou os dois. O sistema sugere a categoria certa pela idade e pelo sexo; confira se a faixa combina.
-3. **Edite quando precisar:** use ✏️ para corrigir um cadastro e 🗑️ para remover.
+3. **Atleta PCD:** ligue a opção **Atleta PCD** e descreva a deficiência ou condição. O formulário passa a mostrar só as categorias PCD da competição.
+4. **Edite quando precisar:** use ✏️ para corrigir um cadastro e 🗑️ para remover.
 
 > **O mesmo aluno em Kata e Kumitê:** marque os dois de uma vez. Se você cadastrar o aluno de novo em outra modalidade, o sistema pergunta se quer **juntar no mesmo cadastro**. Assim ele não aparece duplicado.
 
@@ -231,6 +233,12 @@ Não. Cada professor vê somente os atletas que ele cadastrou. Só o organizador
 <summary><b>Um atleta não combina com nenhuma categoria. E agora?</b></summary>
 
 O organizador pode criar a categoria que falta, ou o professor pode escolher manualmente em **Outras categorias**, na lista de categorias do cadastro.
+</details>
+
+<details>
+<summary><b>Como funciona a inscrição de atletas PCD?</b></summary>
+
+O organizador cria as categorias PCD marcando a opção **PCD**. No cadastro, o professor liga **Atleta PCD** e descreve a deficiência ou condição; aparecem só as categorias PCD. Na lista e na tabela de atletas, o atleta ganha a etiqueta **PCD**, e a súmula indica "(PCD)" na categoria.
 </details>
 
 <details>

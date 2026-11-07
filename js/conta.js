@@ -14,6 +14,7 @@
   }
 
   pintarFoto();
+
   $("#nome").addEventListener("input", () => {
     if (!avatar) {
       pintarFoto();
@@ -73,6 +74,7 @@
   const { count } = await sb.from("competicoes")
     .select("id", { count: "exact", head: true })
     .eq("owner_id", user.id);
+
   const n = count || 0;
 
   $("#txtExcluir").innerHTML = (n

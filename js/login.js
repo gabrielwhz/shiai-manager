@@ -28,6 +28,7 @@
   const f = $("#form"), msg = $("#msg");
   const urlConfirmacao = new URL("painel.html?confirmado=1", location.href).href;
   let emailPendente = "";
+
   const mostrar = (t, tipo = "") => {
     msg.hidden = !t;
     msg.className = "msg " + tipo;

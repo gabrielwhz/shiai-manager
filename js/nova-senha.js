@@ -8,6 +8,7 @@
 
   const st = $("#status"), f = $("#fSenha"), msg = $("#msg");
   let pronto = false;
+
   const mostrar = (t, tipo) => {
     msg.hidden = !t;
     msg.className = "msg " + (tipo || "");
@@ -45,6 +46,7 @@
       abrirForm();
     }
   });
+
   setTimeout(async () => {
     const { data: { session } } = await sb.auth.getSession();
 

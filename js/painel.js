@@ -94,6 +94,7 @@
 
                   return { ...r, competicao_id: comp.id };
                 });
+
                 const { error: e2 } = await sb.from("categorias").insert(linhas);
 
                 if (e2) {

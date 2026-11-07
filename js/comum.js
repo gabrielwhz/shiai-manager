@@ -1,6 +1,6 @@
 "use strict";
 
-const BUILD = 6;
+const BUILD = 7;
 
 console.log("Shiai Manager build " + BUILD);
 
@@ -10,6 +10,7 @@ const CONFIG_OK = !!CFG.SUPABASE_URL && !/COLE_AQUI/.test(CFG.SUPABASE_URL) &&
 const sb = (CONFIG_OK && window.supabase) ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
   "&": "&amp;",
   "<": "&lt;",
@@ -17,11 +18,14 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
   '"': "&quot;",
   "'": "&#39;"
 }[c]));
+
 const cmpNome = (a, b) => String(a || "").trim().localeCompare(String(b || "").trim(), "pt-BR", { sensitivity: "base" });
+
 const norm = s => String(s || "").trim()
   .toLowerCase()
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "");
+
 const SEXO = { M: "Masculino", F: "Feminino", X: "Misto" };
 const _ic = d => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 
@@ -236,9 +240,11 @@ function modal({ titulo, corpo, largo = false, acoes = [] }) {
   document.body.append(d);
   d.querySelector(".x").onclick = () => d.close();
   d.addEventListener("close", () => d.remove());
+
   acoes.forEach((a, i) => {
     d.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick(d) : d.close();
   });
+
   d.showModal();
   return d;
 }
@@ -354,11 +360,13 @@ async function iniciarPagina(ativa) {
 
   montarTopo(perfil, ativa);
   atualizarSino(user.id);
+
   sb.auth.onAuthStateChange(ev => {
     if (ev === "SIGNED_OUT" && !window.__semRedirect) {
       location.replace("login.html");
     }
   });
+
   return { user, perfil };
 }
 
@@ -383,6 +391,7 @@ function montarTopo(perfil, ativa) {
     </nav></div>`;
 
   document.body.prepend(h);
+
   $("#sair").onclick = async () => {
     await sb.auth.signOut();
     location.replace("login.html");
@@ -414,6 +423,7 @@ function linhaCategoriaHTML(c = {}) {
     <label class="field">Idade de<input name="idade_min" type="number" min="0" max="120" inputmode="numeric" value="${c.idade_min ?? ""}"></label>
     <label class="field">até<input name="idade_max" type="number" min="0" max="120" inputmode="numeric" value="${c.idade_max ?? ""}"></label>
     <label class="field c-faixas">Faixas (opcional)<input name="faixas" value="${esc(c.faixas || "")}" placeholder="Ex.: Branca a amarela" maxlength="80"></label>
+    <label class="field c-pcd">PCD<span class="pcd-chk"><input type="checkbox" name="pcd" ${c.pcd ? "checked" : ""}> Sim</span></label>
     <button type="button" class="rm" title="Remover esta categoria" aria-label="Remover esta categoria">×</button>
   </div>`;
 }
@@ -445,13 +455,21 @@ function bindLinhasCategoria(box, addBtn, { minimo = 0 } = {}) {
     addBtn.onclick = () => {
       const last = box.lastElementChild;
       const base = last ? lerLinha(last) : {};
-      const r = add({ modalidade: base.modalidade, sexo: base.sexo });
+      const r = add({ modalidade: base.modalidade, sexo: base.sexo, pcd: base.pcd });
 
       r.querySelector("input[name=nome]").focus();
     };
   }
 
   return add;
+}
+
+function nomeCategoria(c) {
+  return c.pcd && !/pcd/i.test(c.nome) ? `${c.nome} (PCD)` : c.nome;
+}
+
+function chipPcd(cond) {
+  return cond ? ` <span class="chip pcd">PCD</span>` : "";
 }
 
 function num(v) {
@@ -469,7 +487,8 @@ function lerLinha(row) {
     sexo: g("sexo"),
     idade_min: num(g("idade_min")),
     idade_max: num(g("idade_max")),
-    faixas: g("faixas") || null
+    faixas: g("faixas") || null,
+    pcd: row.querySelector("[name=pcd]").checked
   };
 }
 
@@ -541,6 +560,7 @@ function formCompeticaoHTML(comp = {}, comCategorias = true) {
 function bindFormCompeticao(root, comp = {}, comCategorias = true) {
   let logo = comp.logo || null;
   const prev = $("#logoPrev", root), tirar = $("#logoTirar", root);
+
   const pintar = () => {
     prev.innerHTML = logoHTML({ logo, nome: $("[name=nome]", root).value });
     tirar.hidden = !logo;
@@ -561,6 +581,7 @@ function bindFormCompeticao(root, comp = {}, comCategorias = true) {
     logo = null;
     pintar();
   };
+
   $("[name=nome]", root).addEventListener("input", () => {
     if (!logo) {
       pintar();
@@ -588,6 +609,7 @@ function bindFormCompeticao(root, comp = {}, comCategorias = true) {
   });
 
   (comp.datas && comp.datas.length ? comp.datas : [""]).forEach(addData);
+
   $("#addData", root).onclick = () => {
     addData();
     datasBox.lastElementChild.querySelector("input").focus();
@@ -609,6 +631,7 @@ function bindFormCompeticao(root, comp = {}, comCategorias = true) {
     }
 
     const datas = [...new Set($$("#datas input", root).map(i => i.value).filter(Boolean))].sort();
+
     const dados = {
       nome,
       local: $("[name=local]", root).value.trim() || null,

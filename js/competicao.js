@@ -19,12 +19,15 @@
     editId: null,
     busca: ""
   };
+
   const catById = cid => S.cats.find(c => c.id === cid);
+
   const modTxt = a => {
     const m = new Set((a.categorias || []).map(catById).filter(Boolean).map(c => c.modalidade));
 
     return m.has("kata") && m.has("kumite") ? "Kata e Kumitê" : m.has("kata") ? "Kata" : m.has("kumite") ? "Kumitê" : "nenhuma modalidade";
   };
+
   const atletasDaCat = cid => S.atletas.filter(a => (a.categorias || []).includes(cid)).sort((a, b) => cmpNome(a.nome, b.nome));
   const equipeKey = "equipe:" + user.id;
 
@@ -144,7 +147,9 @@
     ABAS.forEach(([k]) => {
       $("#sec-" + k).hidden = k !== a;
     });
+
     $$("#abas a").forEach(x => x.setAttribute("aria-current", x.dataset.aba === a ? "page" : "false"));
+
     ({
       atletas: renderAtletas,
       categorias: renderCategorias,
@@ -175,6 +180,9 @@
         </div>
         <label class="field">Graduação (faixa)<input name="graduacao" list="listaFaixas" maxlength="40" placeholder="Ex.: Verde"></label>
         <label class="field">Equipe ou academia<input name="equipe" maxlength="80" placeholder="Ex.: Academia Central"></label>
+        <div class="field"><span>Atleta PCD</span>
+          <label class="interruptor"><input type="checkbox" name="pcd"><span class="trilho" aria-hidden="true"></span><b data-pcdtxt>Não</b></label></div>
+        <label class="field" data-pcdbox hidden>Qual a deficiência ou condição?<input name="pcd_descricao" maxlength="120" placeholder="Ex.: deficiência visual"></label>
         <fieldset class="stack" style="gap:10px"><legend>Modalidades e categorias</legend>
           ${["kata", "kumite"].map(m => `<div class="mod-box">
             <label class="check-chip" style="justify-self:start"><input type="checkbox" name="m_${m}"> ${MOD[m]}</label>
@@ -195,10 +203,10 @@
     listaAtletas();
   }
 
-  function opcoesCat(m, idade, sexo, atual) {
-    const cats = S.cats.filter(c => c.modalidade === m);
+  function opcoesCat(m, idade, sexo, atual, pcd) {
+    const cats = S.cats.filter(c => c.modalidade === m && !!c.pcd === pcd);
     const ok = cats.filter(c => catCompativel(c, idade, sexo)), outras = cats.filter(c => !ok.includes(c));
-    const o = c => `<option value="${c.id}" ${c.id === atual ? "selected" : ""}>${c.codigo}. ${esc(c.nome)} — ${SEXO[c.sexo]}, ${esc(faixaIdade(c))}${c.faixas ? ", " + esc(c.faixas) : ""}</option>`;
+    const o = c => `<option value="${c.id}" ${c.id === atual ? "selected" : ""}>${c.codigo}. ${esc(nomeCategoria(c))} — ${SEXO[c.sexo]}, ${esc(faixaIdade(c))}${c.faixas ? ", " + esc(c.faixas) : ""}</option>`;
     let h = `<option value="">Escolha a categoria…</option>`;
 
     if (ok.length) {
@@ -213,7 +221,10 @@
   }
 
   function atualizarCats(f, manter) {
-    const idade = num(f.idade.value), sexo = f.sexo.value;
+    const idade = num(f.idade.value), sexo = f.sexo.value, pcd = f.pcd.checked;
+
+    $("[data-pcdbox]", f).hidden = !pcd;
+    $("[data-pcdtxt]", f).textContent = pcd ? "Sim" : "Não";
 
     for (const m of ["kata", "kumite"]) {
       const on = f["m_" + m].checked, box = $(`[data-catbox=${m}]`, f), sel = f["cat_" + m];
@@ -225,7 +236,7 @@
       }
 
       let atual = sel.value || (manter && manter[m]) || "";
-      const { h, ok, total } = opcoesCat(m, idade, sexo, atual);
+      const { h, ok, total } = opcoesCat(m, idade, sexo, atual, pcd);
 
       if (!manter && !ok.some(c => c.id === atual)) {
         atual = ok.length ? ok[0].id : "";
@@ -234,7 +245,7 @@
       sel.innerHTML = h;
       sel.value = atual;
 
-      $(`[data-cathint=${m}]`, f).textContent = !total ? `Ainda não há categorias de ${MOD[m]}.`
+      $(`[data-cathint=${m}]`, f).textContent = !total ? (pcd ? `Não há categorias PCD de ${MOD[m]}. Fale com o organizador.` : `Ainda não há categorias de ${MOD[m]}.`)
         : ok.length > 1 ? `${ok.length} categorias combinam com este atleta. Confira a faixa.`
           : ok.length ? "" : "Nenhuma categoria combina com a idade e o sexo. Escolha em “Outras” ou fale com o organizador.";
     }
@@ -248,10 +259,11 @@
     } catch (e) { }
 
     f.addEventListener("change", e => {
-      if (["idade", "sexo", "m_kata", "m_kumite"].includes(e.target.name)) {
+      if (["idade", "sexo", "pcd", "m_kata", "m_kumite"].includes(e.target.name)) {
         atualizarCats(f);
       }
     });
+
     f.idade.addEventListener("input", () => atualizarCats(f));
     $("#fAtlCancel").onclick = () => limparForm(f);
 
@@ -260,6 +272,7 @@
 
       const nome = f.nome.value.trim().replace(/\s+/g, " "), idade = num(f.idade.value), sexo = f.sexo.value;
       const graduacao = f.graduacao.value.trim() || null, equipe = f.equipe.value.trim() || null;
+      const pcd = f.pcd.checked, pcdDescricao = f.pcd_descricao.value.trim();
 
       if (!nome) {
         f.nome.focus();
@@ -271,9 +284,14 @@
         return toast("Informe a idade do atleta.", "erro");
       }
 
+      if (pcd && !pcdDescricao) {
+        f.pcd_descricao.focus();
+        return toast("Descreva a deficiência ou condição do atleta PCD.", "erro");
+      }
+
       const categorias = [];
 
-      for (const m of ["kata", "kumite"])
+      for (const m of ["kata", "kumite"]) {
         if (f["m_" + m].checked) {
           const v = f["cat_" + m].value;
 
@@ -284,6 +302,7 @@
 
           categorias.push(v);
         }
+      }
 
       if (!categorias.length) {
         return toast("Marque Kata, Kumitê ou os dois.", "erro");
@@ -298,8 +317,13 @@
       if (!editando) {
         const ex = S.atletas.find(x => norm(x.nome) === norm(nome) && x.sexo === sexo && x.idade === idade && norm(x.graduacao) === norm(graduacao));
 
+        if (ex && !!ex.pcd !== pcd) {
+          return toast(`${ex.nome} já está cadastrado(a) ${ex.pcd ? "como PCD" : "sem a opção PCD"}. Use o botão de editar no cadastro existente.`, "erro");
+        }
+
         if (ex) {
           const temMod = new Set((ex.categorias || []).map(catById).filter(Boolean).map(c => c.modalidade));
+
           const novas = categorias.filter(cid => {
             const c = catById(cid);
 
@@ -341,7 +365,9 @@
         sexo,
         graduacao,
         equipe,
-        categorias
+        categorias,
+        pcd,
+        pcd_descricao: pcd ? pcdDescricao : null
       };
 
       await comBotao($("#fAtlBtn"), async () => {
@@ -384,13 +410,16 @@
 
     f.reset();
     f.equipe.value = eq;
+
     [...f.sexo].forEach(r => {
       r.checked = r.value === sx;
     });
+
     ["kata", "kumite"].forEach((m, i) => {
       f["m_" + m].checked = mk[i];
       f["cat_" + m].innerHTML = "";
     });
+
     $("#fAtlTit").textContent = "Cadastrar atleta";
     $("#fAtlBtn").textContent = "Cadastrar atleta";
     $("#fAtlCancel").hidden = true;
@@ -407,11 +436,15 @@
     S.editId = a.id;
     f.nome.value = a.nome;
     f.idade.value = a.idade ?? "";
+
     [...f.sexo].forEach(r => {
       r.checked = r.value === a.sexo;
     });
+
     f.graduacao.value = a.graduacao || "";
     f.equipe.value = a.equipe || "";
+    f.pcd.checked = !!a.pcd;
+    f.pcd_descricao.value = a.pcd_descricao || "";
 
     const manter = {};
 
@@ -434,7 +467,7 @@
   function listaAtletas() {
     const q = norm(S.busca);
     const cs = a => (a.categorias || []).map(catById).filter(Boolean);
-    const l = S.atletas.filter(a => !q || norm([a.nome, a.equipe, a.graduacao, ...cs(a).map(c => c.nome)].join(" ")).includes(q));
+    const l = S.atletas.filter(a => !q || norm([a.nome, a.equipe, a.graduacao, a.pcd ? "pcd " + (a.pcd_descricao || "") : "", ...cs(a).map(c => nomeCategoria(c))].join(" ")).includes(q));
 
     $("#atlCount").textContent = `(${S.atletas.length})`;
 
@@ -455,9 +488,9 @@
 
     box.innerHTML = `<div class="tab-wrap"><table class="tab cards"><thead><tr><th>Nome</th><th>Idade</th><th>Faixa</th><th>Equipe</th><th>Categorias</th>${S.dono ? "<th>Cadastrado por</th>" : ""}<th></th></tr></thead><tbody>
       ${l.map(a => `<tr>
-        <td data-l="Nome"><b>${esc(a.nome)}</b></td><td data-l="Idade" class="nowrap">${a.idade ?? ""} <span class="mut">${a.sexo === "F" ? "Fem." : "Masc."}</span></td>
+        <td data-l="Nome"><b>${esc(a.nome)}</b>${chipPcd(a.pcd)}${a.pcd && a.pcd_descricao ? `<div class="mut small">${esc(a.pcd_descricao)}</div>` : ""}</td><td data-l="Idade" class="nowrap">${a.idade ?? ""} <span class="mut">${a.sexo === "F" ? "Fem." : "Masc."}</span></td>
         <td data-l="Faixa">${esc(a.graduacao || "")}</td><td data-l="Equipe">${esc(a.equipe || "")}</td>
-        <td data-l="Categorias"><div>${cs(a).map(c => `<span class="chip ${c.modalidade}" title="${MOD[c.modalidade]} ${SEXO[c.sexo]}">${MOD[c.modalidade]}: ${c.codigo}. ${esc(c.nome)}</span>`).join("") || '<span class="mut">Nenhuma</span>'}</div></td>
+        <td data-l="Categorias"><div>${cs(a).map(c => `<span class="chip ${c.modalidade}" title="${MOD[c.modalidade]} ${SEXO[c.sexo]}">${MOD[c.modalidade]}: ${c.codigo}. ${esc(nomeCategoria(c))}</span>`).join("") || '<span class="mut">Nenhuma</span>'}</div></td>
         ${S.dono ? `<td data-l="Cadastrado por">${esc(a.created_by === user.id ? "Você" : (a.cadastrado_por_nome || ""))}</td>` : ""}
         <td class="acoes"><button class="btn-ic so-ic" type="button" data-edit="${a.id}" title="Editar atleta" aria-label="Editar ${esc(a.nome)}">${ICONE.editar}</button> <button class="btn-ic so-ic danger" type="button" data-del="${a.id}" title="Remover atleta" aria-label="Remover ${esc(a.nome)}">${ICONE.excluir}</button></td></tr>`).join("")}
       </tbody></table></div>`;
@@ -505,7 +538,7 @@
       return `<details class="cat-item" data-id="${c.id}" ${abertas.has(c.id) ? "open" : ""}>
           <summary>
             <span class="cod-box" title="Código">${c.codigo ?? ""}</span>
-            <span class="n"><b>${esc(c.nome)}</b><small><span class="chip ${c.modalidade}">${MOD[c.modalidade]}</span> ${SEXO[c.sexo]} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""}</small></span>
+            <span class="n"><b>${esc(c.nome)}</b><small><span class="chip ${c.modalidade}">${MOD[c.modalidade]}</span>${chipPcd(c.pcd)} ${SEXO[c.sexo]} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""}</small></span>
             <span class="qtd">${ICONE.seta} ${l.length} atleta(s)</span>
             <span class="acoes-cat">
               <button class="btn-ic" type="button" data-ecat="${c.id}" title="Editar categoria">${ICONE.editar} Editar</button>
@@ -513,7 +546,7 @@
             </span>
           </summary>
           <div class="cat-atl">${l.length ? `<table class="tab cards"><thead><tr><th>Nome</th><th>Idade</th><th>Faixa</th><th>Equipe</th><th>Cadastrado por</th></tr></thead><tbody>
-            ${l.map(a => `<tr><td data-l="Nome"><b>${esc(a.nome)}</b></td><td data-l="Idade">${a.idade ?? ""}</td><td data-l="Faixa">${esc(a.graduacao || "")}</td>
+            ${l.map(a => `<tr><td data-l="Nome"><b>${esc(a.nome)}</b>${chipPcd(a.pcd)}${a.pcd && a.pcd_descricao ? `<div class="mut small">${esc(a.pcd_descricao)}</div>` : ""}</td><td data-l="Idade">${a.idade ?? ""}</td><td data-l="Faixa">${esc(a.graduacao || "")}</td>
               <td data-l="Equipe">${esc(a.equipe || "")}</td><td data-l="Cadastrado por">${esc(a.created_by === user.id ? "Você" : (a.cadastrado_por_nome || ""))}</td></tr>`).join("")}
             </tbody></table>` : `<p class="mut">Nenhum atleta inscrito nesta categoria.</p>`}</div>
         </details>`;
@@ -577,6 +610,7 @@
 
                 return { ...r, competicao_id: id };
               });
+
               const r = await sb.from("categorias").insert(rows).select();
 
               if (r.error) {
@@ -622,9 +656,11 @@
     }
 
     S.cats = S.cats.filter(x => x.id !== cid);
+
     S.atletas.forEach(a => {
       a.categorias = (a.categorias || []).filter(x => x !== cid);
     });
+
     delete S.chaves[cid];
     renderCategorias();
     toast("Categoria excluída.");
@@ -677,7 +713,7 @@
       return `
           <button type="button" class="chv-item" data-cat="${c.id}" aria-current="${c.id === S.catSel}">
             <span class="dot ${st.cls}" title="${st.txt}"></span>
-            <span class="n">${c.codigo}. ${esc(c.nome)}<small>${MOD[c.modalidade]} ${SEXO[c.sexo]} — ${atletasDaCat(c.id).length} atleta(s)</small></span>
+            <span class="n">${c.codigo}. ${esc(nomeCategoria(c))}<small>${MOD[c.modalidade]} ${SEXO[c.sexo]}${c.pcd ? " PCD" : ""} — ${atletasDaCat(c.id).length} atleta(s)</small></span>
           </button>`;
     }).join("")}</div>
         <div class="card stack" id="chvDet"></div>
@@ -696,8 +732,8 @@
     const l = atletasDaCat(c.id), ch = S.chaves[c.id], st = estadoChave(c);
     const mudou = st.cls === "mudou" ? [st.d.novos ? `${st.d.novos} atleta(s) entrou(aram)` : "", st.d.saiu ? `${st.d.saiu} atleta(s) saiu(saíram)` : ""].filter(Boolean).join(" e ") : "";
 
-    box.innerHTML = `<div class="row"><div><h3>${c.codigo}. ${esc(c.nome)}</h3>
-        <p class="mut small">${MOD[c.modalidade]} ${SEXO[c.sexo]} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""} — ${l.length} atleta(s)</p></div>
+    box.innerHTML = `<div class="row"><div><h3>${c.codigo}. ${esc(nomeCategoria(c))}</h3>
+        <p class="mut small">${MOD[c.modalidade]} ${SEXO[c.sexo]}${c.pcd ? " PCD" : ""} — ${esc(faixaIdade(c))}${c.faixas ? " — " + esc(c.faixas) : ""} — ${l.length} atleta(s)</p></div>
         <span class="spacer"></span>
         <button class="btn ${ch ? "alt" : ""} sm" id="sortear" type="button" ${l.length ? "" : "disabled"}>${ch ? "Sortear de novo" : "Sortear chave"}</button>
         ${ch ? `<button class="btn sm" id="pdfUma" type="button">${ICONE.pdf} Baixar PDF</button>
@@ -716,6 +752,7 @@
       dados: Chave.sortear(atletasDaCat(c.id)),
       updated_at: new Date().toISOString()
     }));
+
     const { data, error } = await sb.from("chaves")
       .upsert(rows, { onConflict: "categoria_id" })
       .select("categoria_id,dados,updated_at");
@@ -728,6 +765,7 @@
     data.forEach(r => {
       S.chaves[r.categoria_id] = r;
     });
+
     return true;
   }
 
@@ -870,6 +908,7 @@
     for (let i = 0; i < cats.length; i++) {
       aviso(`Gerando ${i + 1} de ${cats.length}…`);
       await esperar(10);
+
       out.push({
         cat: cats[i],
         pagina: await paginaSumula(S.comp, cats[i], S.chaves[cats[i].id].dados)
@@ -1177,6 +1216,7 @@
         ds.forEach(x => {
           x.open = abrir;
         });
+
         t.textContent = abrir ? "Recolher todas" : "Mostrar atletas de todas";
         return;
       }
@@ -1200,12 +1240,14 @@
       listaAtletas();
     }
   });
+
   app.addEventListener("submit", e => {
     if (e.target.id === "fConv") {
       e.preventDefault();
       convidar(e.target);
     }
   });
+
   hero();
   mostrarAba();
 })();

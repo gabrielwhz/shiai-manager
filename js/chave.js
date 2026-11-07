@@ -122,6 +122,7 @@ const Chave = {
       mut: "#6B7385",
       ouro: "#E8A80C"
     };
+
     const F = 'font-family="Barlow, Arial, sans-serif"';
     const slots = dados.slots || [];
     let W = 1000;
@@ -220,7 +221,7 @@ const LOGO_PADRAO = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<s
 </svg>`);
 
 function nomeArquivoSumula(cat) {
-  return nomeSeguro(`${cat.nome} - ${MOD[cat.modalidade]} ${SEXO[cat.sexo]} - Cód ${cat.codigo ?? ""}`);
+  return nomeSeguro(`${nomeCategoria(cat)} - ${MOD[cat.modalidade]} ${SEXO[cat.sexo]} - Cód ${cat.codigo ?? ""}`);
 }
 
 function paginaSumulaSVG(comp, cat, dados) {
@@ -230,7 +231,7 @@ function paginaSumulaSVG(comp, cat, dados) {
   let det;
 
   if (cat) {
-    const partes = [["Categoria", cat.nome], ["Sexo", SEXO[cat.sexo]], ["Idade", faixaIdade(cat)]];
+    const partes = [["Categoria", nomeCategoria(cat)], ["Sexo", SEXO[cat.sexo]], ["Idade", faixaIdade(cat)]];
 
     if (cat.faixas) {
       partes.push(["Faixas", cat.faixas]);
@@ -247,7 +248,6 @@ function paginaSumulaSVG(comp, cat, dados) {
   const top = M + 112, fy = H - M - 122, alt = fy - 14 - top;
   const chave = Chave.svg(dados, { proporcao: (W - 2 * M) / alt }).replace('<svg xmlns="http://www.w3.org/2000/svg" ', `<svg x="${M}" y="${top}" width="${W - 2 * M}" height="${alt}" preserveAspectRatio="xMidYMin meet" `);
   const lx2 = W - M - 262, tx = W - M - 236;
-
   const linhas = ["Árbitros:", "Mesários:", "Observações:"].map((r, i) => `<text x="${M}" y="${fy + 20 + i * 40}" font-size="13" font-weight="700">${r}</text>
      <line x1="${M}" y1="${fy + 28 + i * 40}" x2="${lx2}" y2="${fy + 28 + i * 40}" stroke="#000" stroke-width="1"/>`).join("");
 
@@ -307,7 +307,7 @@ function folhaListaAtletas(comp, cats, atletas) {
     <header class="lista-top"><img src="${logo}" alt=""><div><strong>${esc(comp.nome)}</strong>
       <span>Lista de atletas — ${lista.length} atleta(s) — ${new Date().toLocaleDateString("pt-BR")}</span></div></header>
     <table class="lista-tab"><thead><tr><th>Nº</th><th>Nome</th><th>Idade</th><th>Faixa</th><th>Equipe / academia</th></tr></thead>
-    ${lista.map((a, i) => `<tbody><tr class="l1"><td class="n" rowspan="2">${i + 1}</td><td><b>${esc(a.nome)}</b></td><td>${a.idade ?? ""}</td><td>${esc(a.graduacao || "")}</td><td>${esc(a.equipe || "")}</td></tr>
+    ${lista.map((a, i) => `<tbody><tr class="l1"><td class="n" rowspan="2">${i + 1}</td><td><b>${esc(a.nome)}</b>${a.pcd ? ` <span class="pcd-tag">PCD${a.pcd_descricao ? ": " + esc(a.pcd_descricao) : ""}</span>` : ""}</td><td>${a.idade ?? ""}</td><td>${esc(a.graduacao || "")}</td><td>${esc(a.equipe || "")}</td></tr>
       <tr class="l2"><td colspan="4">${esc(linhaCategoriasAtleta(a, catById))}</td></tr></tbody>`).join("")}
     </table>${lista.length ? "" : "<p>Nenhum atleta cadastrado.</p>"}</section>`;
 }
@@ -336,6 +336,7 @@ function imprimir(html, { titulo, paisagem = true }) {
   const antigo = document.title;
 
   document.title = titulo;
+
   window.addEventListener("afterprint", () => {
     document.title = antigo;
     area.innerHTML = "";
