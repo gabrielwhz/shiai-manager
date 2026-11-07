@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://shiai-manager.pages.dev"><img alt="Acessar o Shiai Manager" src="https://img.shields.io/badge/ACESSAR_O_SHIAI_MANAGER-D12A3A?style=for-the-badge&logoColor=white"></a>
   &nbsp;
-  <a href="https://www.mediafire.com/file/hnwa8jupsen0522/Shiai+Manager+-+EXTRAIA.zip/file"><img alt="Baixar o placar para Windows" src="https://img.shields.io/badge/BAIXAR_O_PLACAR_(WINDOWS)-2357C9?style=for-the-badge&logo=windows&logoColor=white"></a>
+  <a href="https://github.com/gabrielwhz/shiai-manager/releases/latest/download/Shiai.Manager.-.EXTRAIA.zip"><img alt="Baixar o placar para Windows" src="https://img.shields.io/badge/BAIXAR_O_PLACAR_(WINDOWS)-2357C9?style=for-the-badge&logo=windows&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -161,7 +161,7 @@ Clique na sua foto ou no seu nome, no topo da tela:
 Programa para Windows que mostra as lutas na TV ou no projetor. **Funciona sem internet.**
 
 ### Instalar
-1. **[Baixe o Shiai Manager para Windows](https://www.mediafire.com/file/hnwa8jupsen0522/Shiai+Manager+-+EXTRAIA.zip/file)**.
+1. **[Baixe o Shiai Manager para Windows](https://github.com/gabrielwhz/shiai-manager/releases/latest/download/Shiai.Manager.-.EXTRAIA.zip)**.
 2. Clique com o botão direito no arquivo baixado e escolha **Extrair tudo**.
 3. Abra a pasta e dê dois cliques em **`Shiai Manager.exe`**. Não mexa na pasta `Arquivos`.
 
@@ -260,7 +260,7 @@ Encontrou um problema ou tem uma sugestão?
 - ✉️ **E-mail:** [shiaimanager@gmail.com](mailto:shiaimanager@gmail.com)
 - 🐞 **Relatar um problema:** abra uma [issue](../../issues) aqui no GitHub, contando o que aconteceu e, se puder, com um print da tela.
 
-As novidades de cada versão ficam no [histórico de versões](CHANGELOG.md).
+As novidades de cada versão do placar ficam em [Releases](../../releases).
 
 <a id="creditos"></a>
 
