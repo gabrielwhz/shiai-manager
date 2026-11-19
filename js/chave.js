@@ -327,14 +327,12 @@ const Chave = {
       out.push(`<line x1="${x}" y1="${y}" x2="${xe}" y2="${y}" stroke="${C.linha}" stroke-width="${r === R ? 2.4 : 1.6}"/>`);
       out.push(`<circle cx="${x + 6}" cy="${y - 8}" r="${cor === "ouro" ? 4.5 : 4}" fill="${C[cor]}"/>`);
 
-      if (atleta && atleta.nome) {
+      if (extra.vazio) {
+        out.push(`<text x="${x + 16}" y="${y - 5}" font-size="${fs - 1}" fill="${C.mut}" font-style="italic">(sem adversário)</text>`);
+      } else if (atleta && atleta.nome) {
         const peso = extra.perdeu ? `fill="${C.mut}"` : `fill="${C.txt}" font-weight="${extra.venceu ? 700 : 500}"`;
 
         out.push(`<text x="${x + 16}" y="${y - 5}" font-size="${fs}" ${peso}>${esc(this.corte(atleta.nome, maxC(r)))}</text>`);
-      }
-
-      if (extra.semAdversario) {
-        out.push(`<text x="${x + 16}" y="${y + 11}" font-size="${fs - 3}" fill="${C.mut}" font-style="italic">sem adversário</text>`);
       }
     };
 
@@ -349,20 +347,18 @@ const Chave = {
 
     for (const p of res.partidas) {
       const y1 = ys[p.r][2 * p.j], y2 = ys[p.r][2 * p.j + 1];
+      const decidido = p.real && p.vencedor;
 
-      if (!p.real) {
-        continue;
-      }
-
-      const semAdv = k => p.r === 1 && res.porChave[p.fontes[k].venc] && !res.porChave[p.fontes[k].venc].real;
-
-      linhaAtleta(p.r, y1, "aka", p.aka, { venceu: p.vencedor === "aka", perdeu: p.vencedor === "ao", semAdversario: semAdv(0) });
-      linhaAtleta(p.r, y2, "ao", p.ao, { venceu: p.vencedor === "ao", perdeu: p.vencedor === "aka", semAdversario: semAdv(1) });
+      linhaAtleta(p.r, y1, "aka", p.aka, { vazio: p.r === 0 && !p.aka, venceu: decidido && p.vencedor === "aka", perdeu: decidido && p.vencedor === "ao" });
+      linhaAtleta(p.r, y2, "ao", p.ao, { vazio: p.r === 0 && !p.ao, venceu: decidido && p.vencedor === "ao", perdeu: decidido && p.vencedor === "aka" });
 
       const xe = colFim(p.r), ym = (y1 + y2) / 2;
 
       out.push(`<path d="M${xe} ${y1}V${y2}M${xe} ${ym}H${colX(p.r + 1)}" fill="none" stroke="${C.linha}" stroke-width="1.6"/>`);
-      circulo(xe, ym, p.numero);
+
+      if (p.real) {
+        circulo(xe, ym, p.numero);
+      }
     }
 
     const campeao = res.venc[`r${R - 1}-0`];
@@ -423,16 +419,20 @@ function paginaSumulaSVG(comp, cat, dados, opts = {}) {
   const qtdLugares = res.S <= 1 ? 1 : res.S === 2 ? 2 : semisReais ? 4 : 3;
   const lugares = ["1º", "2º", "3º", "4º"].slice(0, Math.max(qtdLugares, 2));
   const altTab = 24 + lugares.length * 24;
-  const fy = H - M - altTab;
+  const fy = H - M - Math.max(altTab, opts.semAssinaturas ? 0 : 128);
   const top = M + 112, alt = fy - 16 - top;
   const chave = Chave.svg(dados, { proporcao: (W - 2 * M) / alt, resultados: opts.resultados })
     .replace('<svg xmlns="http://www.w3.org/2000/svg" ', `<svg x="${M}" y="${top}" width="${W - 2 * M}" height="${alt}" preserveAspectRatio="xMidYMin meet" `);
   const tw = 300, tx = W - M - tw;
+  const larg = tx - 26 - M;
+
+  const assinaturas = (titulo, qtd, x, w) => `<text x="${x}" y="${fy + 14}" font-size="13" font-weight="700">${titulo}</text>
+    ${Array.from({ length: qtd }, (_, i) => `<text x="${x}" y="${fy + 36 + i * 22}" font-size="12">${i + 1}.</text>
+      <line x1="${x + 18}" y1="${fy + 38 + i * 22}" x2="${x + w}" y2="${fy + 38 + i * 22}" stroke="#000" stroke-width="1"/>`).join("")}`;
 
   const linhas = opts.semAssinaturas
     ? (opts.nota ? `<text x="${M}" y="${fy + 20}" font-size="12" fill="#555">${esc(opts.nota)}</text>` : "")
-    : ["Árbitros:", "Mesários:", "Observações:"].map((r, i) => `<text x="${M}" y="${fy + 20 + i * 34}" font-size="13" font-weight="700">${r}</text>
-     <line x1="${M}" y1="${fy + 28 + i * 34}" x2="${tx - 26}" y2="${fy + 28 + i * 34}" stroke="#000" stroke-width="1"/>`).join("");
+    : assinaturas("Árbitros", 5, M, larg * 0.54) + assinaturas("Mesários", 3, M + larg * 0.6, larg * 0.4);
 
   const tabela = `<rect x="${tx}" y="${fy}" width="${tw}" height="24" fill="${NAVY}"/>
     <text x="${tx + tw / 2}" y="${fy + 17}" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Classificação</text>

@@ -828,7 +828,7 @@
         <p>${resumo}</p></div><span class="spacer"></span>
         ${trava ? "" : `<button class="btn" id="sortTodas" type="button" ${comAtl.length ? "" : "disabled"}>Sortear todas</button>`}</div>
       <div class="card row" style="margin-bottom:18px">
-        <span class="mut small" style="margin-right:4px">Todas as súmulas:</span>
+        <span class="mut small" style="margin-right:4px">Downloads:</span>
         <button class="btn alt sm" id="pdfTodas" type="button" ${sorteadas ? "" : "disabled"}>${ICONE.pdf} Todas em um único PDF</button>
         <button class="btn alt sm" id="zipTodas" type="button" ${sorteadas ? "" : "disabled"}>${ICONE.zip} Todas em ZIP (uma por arquivo)</button>
         <button class="btn alt sm" id="sumBranco" type="button">${ICONE.pdf} Súmula em branco</button>
@@ -1473,14 +1473,12 @@
     }
 
     const linhas = res.ordem.map(p => {
-      const reg = lutas[p.key];
       const nome = a => a ? esc(a.nome) : `<span class="mut">a definir</span>`;
       const venc = p.vencedor ? `<b class="v-${p.vencedor}">${esc((p.vencedor === "aka" ? p.aka : p.ao).nome)}</b>` : `<span class="mut">—</span>`;
-      const doc = "";
 
       return `<tr><td data-l="Luta"><span class="cod">${p.numero}</span></td><td data-l="Fase">${esc(p.fase)}</td>
         <td data-l="AKA"><span class="lado aka">AKA</span> ${nome(p.aka)}</td><td data-l="AO"><span class="lado ao">AO</span> ${nome(p.ao)}</td>
-        <td data-l="Vencedor">${venc}</td><td class="acoes">${doc}</td></tr>`;
+        <td data-l="Vencedor">${venc}</td></tr>`;
     }).join("");
 
     const classif = res.classificacao.length && res.concluida
@@ -1502,13 +1500,12 @@
     box.innerHTML = `${cab}${situacao}
       ${classif}
       <div class="chv-svg">${Chave.svg(ch.dados, { resultados: resultadosDe(c.id) })}</div>
-      ${res.ordem.length ? `<div class="tab-wrap"><table class="tab cards lutas-tab"><thead><tr><th>Luta</th><th>Fase</th><th>AKA</th><th>AO</th><th>Vencedor</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>` : `<p class="mut">Categoria com atleta único: não há lutas.</p>`}
+      ${res.ordem.length ? `<div class="tab-wrap"><table class="tab cards lutas-tab"><thead><tr><th>Luta</th><th>Fase</th><th>AKA</th><th>AO</th><th>Vencedor</th></tr></thead><tbody>${linhas}</tbody></table></div>` : `<p class="mut">Categoria com atleta único: não há lutas.</p>`}
       ${acoesDono.length ? `<div class="row">${acoesDono.join("")}</div>` : ""}
       <div class="pasta">
         <div class="pasta-head">${ICONE.pasta}<h3>Pasta de arquivos da categoria</h3><span class="spacer"></span>
-          <button class="btn alt sm" type="button" data-arq="zip">${ICONE.zip} Baixar a pasta (ZIP)</button></div>
+          <button class="btn alt sm" type="button" data-arq="zip" ${qtdLutas || res.S === 1 ? "" : "disabled"}>${ICONE.zip} Baixar a pasta (ZIP)</button></div>
         <ul class="arquivos">
-          <li><span>${ICONE.pdf} Súmula de ${MOD[c.modalidade]} — molde, sem resultados</span><button class="btn-ic" type="button" data-arq="molde">Baixar</button></li>
           <li><span>${ICONE.pdf} Súmula de ${MOD[c.modalidade]} — com vencedores${res.concluida ? "" : qtdLutas ? " (parcial)" : ""}</span>
             <button class="btn-ic" type="button" data-arq="venc" ${qtdLutas || res.S === 1 ? "" : "disabled"}>Baixar</button></li>
           ${c.modalidade === "kumite" ? `<li><span>${ICONE.pdf} Súmula de kumitê — ${arquivosLuta.length ? `${arquivosLuta.length} luta(s) registrada(s)` : "aguardando as lutas"}</span><button class="btn-ic" type="button" data-arq="kumite" ${arquivosLuta.length ? "" : "disabled"}>Baixar</button></li>` : ""}
@@ -1530,10 +1527,6 @@
     const res = Chave.resolver(ch.dados, resultados);
     const base = nomeArquivoSumula(c);
     const arqs = [];
-
-    aviso("Gerando o molde…");
-    await esperar(10);
-    arqs.push({ nome: `Molde - ${base}.pdf`, paginas: [await paginaSumula(S.comp, c, ch.dados, { semAssinaturas: true, titulo: `Súmula de ${MOD[c.modalidade]} — molde` })] });
 
     if (Object.keys(resultados).length || res.S === 1) {
       aviso("Gerando a súmula com vencedores…");
@@ -1562,10 +1555,6 @@
 
     comProgresso(btn, async (aviso) => {
       aviso("Gerando…");
-
-      if (qual === "molde") {
-        return baixarBlob(criarPDF([await paginaSumula(S.comp, c, ch.dados, { semAssinaturas: true, titulo: `Súmula de ${MOD[c.modalidade]} — molde` })]), `Molde - ${base}.pdf`);
-      }
 
       if (qual === "venc") {
         const resultados = resultadosDe(c.id);

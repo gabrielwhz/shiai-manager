@@ -145,7 +145,6 @@ Com a competição em andamento, a aba **Súmulas** mostra, para cada categoria:
 - **A chave com os vencedores** e a lista de lutas com o resultado de cada uma.
 - **A classificação final** (1º, 2º, 3º e 4º) quando a categoria é concluída.
 - **A pasta de arquivos da categoria**, com:
-  - a súmula **molde**, sem resultados;
   - a súmula **com os vencedores**;
   - a **súmula de kumitê**, no modelo de 6 lutas por folha, preenchida sozinha pela mesa a cada luta;
   - o botão **Baixar a pasta (ZIP)**, com tudo de uma vez.
