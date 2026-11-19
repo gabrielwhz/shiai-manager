@@ -35,8 +35,10 @@ Não precisa instalar nada para usar o site: ele funciona no navegador do comput
 - [Primeiros passos](#primeiros-passos)
 - [Guia do organizador](#organizador)
 - [Guia do professor](#professor)
+- [Guia do mesário](#mesario)
 - [Minha conta](#conta)
-- [Placar eletrônico](#placar)
+- [Mesa da competição](#mesa)
+- [Aplicativo para Windows (offline)](#placar)
 - [Dicas para o dia do evento](#dicas)
 - [Perguntas frequentes](#faq)
 - [Suporte](#suporte)
@@ -85,13 +87,17 @@ Use **+ Adicionar outra categoria** para cadastrar várias de uma vez. Clique nu
   <img src="assets/readme/tela-categorias.png" alt="Categorias com os atletas inscritos" width="90%">
 </p>
 
-### 3. Convidar os professores
+### 3. Montar a equipe
 
-Na aba **Professores**, digite o e-mail da conta do professor e clique em **Enviar convite**. O convite aparece em **Notificações**, na conta dele.
+Na aba **Equipe**, digite o e-mail da pessoa, escolha o **cargo** e clique em **Enviar convite**. O convite aparece em **Notificações**, na conta dela.
 
-- O professor precisa **já ter conta** no Shiai Manager, com o e-mail confirmado.
-- Depois de aceitar, ele só vê e edita **os atletas que ele mesmo cadastrou**.
-- Você pode cancelar um convite ou remover um professor a qualquer momento. Os atletas que ele cadastrou continuam inscritos.
+| Cargo | O que faz |
+|---|---|
+| **Professor** | Cadastra e vê só os próprios atletas. Depois do início, também pode abrir a mesa. |
+| **Mesário** | Não vê atletas nem categorias. Só abre a mesa da competição, depois do início. |
+
+- A pessoa precisa **já ter conta** no Shiai Manager, com o e-mail confirmado.
+- Dá para mudar o cargo de quem já está na equipe, cancelar convites ou remover pessoas a qualquer momento. Os atletas de um professor removido continuam inscritos.
 
 ### 4. Acompanhar as inscrições
 
@@ -121,7 +127,36 @@ Se alguém for inscrito ou removido depois do sorteio, a categoria fica marcada 
   <sub>Súmula em A4 deitado: ordem das lutas, cores AKA e AO, árbitros, mesários e classificação.</sub>
 </p>
 
-### 6. Editar ou excluir a competição
+### 6. Iniciar a competição
+
+No dia do evento, clique em **▶ Iniciar competição**, no topo da página da competição.
+
+> 🔒 **Ao iniciar, as inscrições, as categorias e as súmulas ficam trancadas** enquanto a competição estiver em andamento. Ninguém consegue cadastrar, editar ou sortear de novo.
+
+- Se alguma categoria com atletas ainda não foi sorteada, o sistema oferece **sortear e iniciar** de uma vez.
+- A **mesa da competição** é liberada para você, para os professores e para os mesários.
+- Errou e quer voltar? Em **Dados da competição**, use **Voltar para inscrições**. Isso só funciona enquanto nenhuma luta tiver sido registrada.
+
+### 7. Acompanhar ao vivo
+
+Com a competição em andamento, a aba **Súmulas** mostra, para cada categoria:
+
+- **Situação:** aguardando, em andamento (e em qual koto) ou concluída. A tela se atualiza sozinha a cada 15 segundos.
+- **A chave com os vencedores** e a lista de lutas com o resultado de cada uma.
+- **A classificação final** (1º, 2º, 3º e 4º) quando a categoria é concluída.
+- **A pasta de arquivos da categoria**, com:
+  - a súmula **molde**, sem resultados;
+  - a súmula **com os vencedores**;
+  - a **súmula de kumitê**, no modelo de 6 lutas por folha, preenchida sozinha pela mesa a cada luta;
+  - o botão **Baixar a pasta (ZIP)**, com tudo de uma vez.
+
+Se um koto parar de responder, use **Liberar a mesa desta categoria** para outro koto assumir. Para corrigir uma categoria concluída, use **Reabrir categoria**.
+
+### 8. Finalizar
+
+Quando todas as categorias terminarem, clique em **Finalizar competição**. Os resultados e os arquivos continuam disponíveis para consulta. Precisa corrigir algo? Use **Reabrir competição**.
+
+### 9. Editar ou excluir a competição
 
 Na aba **Dados da competição**, você muda o nome, o local, as datas, a federação e a logo. Lá também fica a opção de **excluir a competição**, que apaga tudo o que há nela e não pode ser desfeita.
 
@@ -141,6 +176,37 @@ Na aba **Dados da competição**, você muda o nome, o local, as datas, a federa
   <sub>Dá para inscrever os alunos pelo celular.</sub>
 </p>
 
+<a id="mesario"></a>
+
+## 🧑‍⚖️ Guia do mesário
+
+1. **Aceite o convite** em **Notificações**.
+2. Na competição, aparece o botão **Abrir mesa da competição**. Ele fica bloqueado até o organizador iniciar a competição.
+3. No dia do evento, abra a mesa e siga a [Mesa da competição](#mesa).
+
+<a id="mesa"></a>
+
+## 🥋 Mesa da competição
+
+A mesa é o placar eletrônico dentro do Shiai Manager. Ela abre no navegador e **já puxa as súmulas e salva os resultados**. Fica disponível para o organizador, os professores e os mesários depois que a competição é iniciada.
+
+### Passo a passo no koto
+1. Escreva o nome do koto (ex.: **Koto 1**).
+2. Quando a súmula de uma categoria chegar ao koto, digite o **código** dela e abra a categoria. Ela fica reservada para o seu koto, e nenhum outro koto consegue registrar resultados nela ao mesmo tempo.
+3. As lutas aparecem **na ordem da súmula**. Clique em **Chamar luta**: os nomes do AKA e do AO vão direto para o placar.
+4. Conduza a luta normalmente, com placar, cronômetro e TV.
+5. Marque o vencedor no placar (**AKA venceu** ou **AO venceu**) e clique em **Confirmar resultado**. O vencedor avança na chave e a próxima luta já aparece com os nomes certos.
+6. Depois da final, clique em **Concluir categoria**. A classificação vai direto para a súmula no Shiai Manager.
+
+### Bom saber
+- **Kata:** escolha o sistema de avaliação, **Bandeiras** ou **Notas**, no placar. Na confirmação, dá para anotar as bandeiras ou as notas de cada atleta.
+- **Kumitê:** enquanto você conduz a luta, a mesa registra cada ponto, penalidade e senshu com o tempo. Ao confirmar, a luta entra na **súmula de kumitê** da categoria, que fica na pasta de arquivos. Na confirmação, marque se a luta terminou por **Kiken** ou **Hansoku**.
+- **Inverter cores** no placar não atrapalha: o resultado é registrado para o atleta certo.
+- **Errou um resultado?** Use **Desfazer**. As lutas seguintes que dependiam dele também são desfeitas.
+- **Caiu a internet?** O resultado fica guardado no computador e é enviado sozinho quando a conexão voltar. Não feche a página enquanto aparecer o aviso amarelo.
+- **3º e 4º lugar:** não há luta de 3º lugar. O perdedor da semifinal do campeão fica em 3º, e o perdedor da semifinal do vice fica em 4º.
+- **TV:** clique em **Abrir placar da TV**, arraste a janela para a TV e coloque em tela cheia, como no aplicativo.
+
 <a id="conta"></a>
 
 ## 👤 Minha conta
@@ -153,13 +219,13 @@ Clique na sua foto ou no seu nome, no topo da tela:
 
 <a id="placar"></a>
 
-## 🖥️ Placar eletrônico
+## 🖥️ Aplicativo para Windows (offline)
 
 <p align="center">
   <img src="assets/readme/placar.png" alt="Placar eletrônico — mesa de controle" width="90%">
 </p>
 
-Programa para Windows que mostra as lutas na TV ou no projetor. **Funciona sem internet.**
+É o mesmo placar da mesa, em forma de programa para Windows. **Funciona sem internet**, mas não se conecta às súmulas: os nomes e os resultados são preenchidos à mão. **O recomendado é usar a [mesa da competição](#mesa)**, que evita erros de digitação e já monta as súmulas. Use o aplicativo quando o local não tiver internet.
 
 ### Instalar
 1. **[Baixe o Shiai Manager para Windows](https://github.com/gabrielwhz/shiai-manager/releases/latest/download/Shiai.Manager.-.EXTRAIA.zip)**.
@@ -198,6 +264,8 @@ Os dados da luta ficam salvos mesmo se o programa for fechado.
 - **Baixe também o ZIP** e guarde no pendrive: é uma cópia de segurança, uma súmula por arquivo.
 - **Imprima a Tabela de atletas** para a mesa de recepção conferir os nomes.
 - **Teste o placar na TV do local** antes do evento: cabo HDMI e Windows + P.
+- **Confira a internet de cada koto** antes de iniciar. Se o local não tiver internet, use o aplicativo para Windows.
+- **Combine o nome de cada koto** (Koto 1, Koto 2…) com os mesários antes de começar.
 - **Leve algumas súmulas em branco** para imprevistos.
 
 <a id="faq"></a>
@@ -232,6 +300,18 @@ O organizador pode criar a categoria que falta, ou o professor pode escolher man
 <summary><b>Como funciona a inscrição de atletas PCD?</b></summary>
 
 O organizador cria as categorias PCD marcando a opção **PCD**. No cadastro, o professor liga **Atleta PCD** e descreve a deficiência ou condição; aparecem só as categorias PCD. Na lista e na tabela de atletas, o atleta ganha a etiqueta **PCD**, e a súmula indica "(PCD)" na categoria.
+</details>
+
+<details>
+<summary><b>Por que não consigo mais cadastrar atletas?</b></summary>
+
+A competição já foi iniciada. As inscrições, as categorias e as súmulas ficam trancadas enquanto ela estiver em andamento. Se nenhuma luta foi registrada, o organizador pode usar **Voltar para inscrições**, em **Dados da competição**.
+</details>
+
+<details>
+<summary><b>Dois kotos podem usar a mesma categoria?</b></summary>
+
+Não. Quando um koto abre uma categoria, ela fica reservada para ele. Se o koto parar de responder, o organizador pode liberar a categoria na aba **Súmulas**.
 </details>
 
 <details>

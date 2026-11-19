@@ -1530,6 +1530,236 @@ dialog.modal[open] {
   text-align: center;
 }
 
+.dot.vivo {
+  background: var(--aka);
+  box-shadow: 0 0 0 3px rgba(209, 42, 58, .18);
+}
+
+.fase-chip {
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--mut);
+}
+
+.fase-chip.f-andamento {
+  border-color: var(--aka);
+  color: var(--aka);
+  background: rgba(209, 42, 58, .08);
+}
+
+.fase-chip.f-finalizada {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: rgba(30, 138, 85, .08);
+}
+
+.faixa-fase {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-radius: var(--r-m);
+  margin: -6px 0 18px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.faixa-fase svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.faixa-fase.andamento {
+  border-color: var(--aka);
+  box-shadow: inset 4px 0 0 var(--aka);
+}
+
+.faixa-fase.finalizada {
+  border-color: var(--ok);
+  box-shadow: inset 4px 0 0 var(--ok);
+}
+
+.acoes-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.lista-avisos {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}
+
+.aviso.ok-aviso {
+  border-left-color: var(--ok);
+}
+
+.aviso.vivo-aviso {
+  border-left-color: var(--aka);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.classif {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.classif .pos {
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+  background: var(--soft);
+}
+
+.classif .pos span {
+  font: 700 1.4rem/1 var(--display);
+}
+
+.classif .pos small {
+  color: var(--mut);
+}
+
+.classif .p1 {
+  border-color: var(--gold);
+}
+
+.classif .p1 span {
+  color: #9A6D00;
+}
+
+.lado {
+  display: inline-block;
+  font-size: .7rem;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-right: 4px;
+}
+
+.lado.aka {
+  background: var(--aka);
+}
+
+.lado.ao {
+  background: var(--ao);
+}
+
+.v-aka {
+  color: var(--aka);
+}
+
+.v-ao {
+  color: var(--ao);
+}
+
+.pasta {
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  padding: 14px 16px;
+  background: var(--soft);
+  display: grid;
+  gap: 10px;
+}
+
+.pasta-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pasta-head h3 {
+  font-size: 1.15rem;
+}
+
+.arquivos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.arquivos li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 8px 10px;
+  font-size: .92rem;
+}
+
+.arquivos li span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.btn-ic:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.cargos {
+  display: grid;
+  gap: 6px;
+  font-size: .9rem;
+  color: var(--mut);
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.cargos b {
+  color: var(--ink);
+}
+
+.cargo-sel {
+  width: auto;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.mesario-card {
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+  justify-items: center;
+  padding: 32px 24px;
+}
+
+.mesario-ic {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--soft);
+  border: 1px solid var(--line);
+}
+
+.mesario-ic svg {
+  width: 30px;
+  height: 30px;
+}
+
 @media (max-width: 980px) {
   .atl-layout,
   .chv-layout,

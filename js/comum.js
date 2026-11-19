@@ -1,6 +1,6 @@
 "use strict";
 
-const BUILD = 7;
+const BUILD = 8;
 
 console.log("Shiai Manager build " + BUILD);
 
@@ -34,7 +34,11 @@ const ICONE = {
   excluir: _ic('<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>'),
   pdf: _ic('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 12v6M9 15l3 3 3-3"/>'),
   zip: _ic('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v6M9 14l3 3 3-3"/>'),
-  seta: _ic('<path d="m9 6 6 6-6 6"/>')
+  seta: _ic('<path d="m9 6 6 6-6 6"/>'),
+  play: _ic('<path d="M7 4v16l13-8Z"/>'),
+  mesa: _ic('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+  cadeado: _ic('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  pasta: _ic('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>')
 };
 
 const MOD = { kata: "Kata", kumite: "Kumitê" };
@@ -155,8 +159,23 @@ function nomeArquivoCat(c) {
   return `${MOD[c.modalidade]} ${SEXO[c.sexo]} - ${c.nome} - Cod ${c.codigo}`.replace(/[\\/:*?"<>|]/g, "");
 }
 
+const FASES = {
+  inscricoes: "Inscrições abertas",
+  andamento: "Em andamento",
+  finalizada: "Finalizada"
+};
+
+function chipFase(f) {
+  f = f || "inscricoes";
+  return `<span class="fase-chip f-${f}">${FASES[f] || f}</span>`;
+}
+
 function erroTexto(e) {
   const m = (e && (e.message || e.error_description || e.msg)) || String(e || "Erro desconhecido");
+
+  if (/Could not find the function|function .* does not exist|relation .* does not exist|column .* does not exist|schema cache/i.test(m)) {
+    return "O banco de dados ainda não foi atualizado para esta versão. Rode o SQL da atualização no Supabase.";
+  }
 
   if (/Invalid login credentials/i.test(m)) {
     return "E-mail ou senha incorretos.";

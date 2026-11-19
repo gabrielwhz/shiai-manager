@@ -33,9 +33,19 @@
   $("#btnCriar").onclick = abrirCriar;
 
   async function carregarCompeticoes() {
-    const { data, error } = await sb.from("competicoes").select("id,nome,local,datas,federacao,logo,owner_id,created_at")
-      .order("created_at", { ascending: false });
+    const [{ data, error }, { data: minhas }] = await Promise.all([
+      sb.from("competicoes").select("*").order("created_at", { ascending: false }),
+      sb.from("competicao_membros").select("*").eq("user_id", user.id)
+    ]);
+
     const box = $("#lista");
+    const papelDe = c => c.owner_id === user.id ? "dono" : ((minhas || []).find(m => m.competicao_id === c.id) || {}).papel || "professor";
+
+    const ROTULO = {
+      dono: "Organizador",
+      professor: "Professor",
+      mesario: "Mesário"
+    };
 
     if (error) {
       box.innerHTML = `<div class="aviso erro">${esc(erroTexto(error))}</div>`;
@@ -53,7 +63,7 @@
         ${logoHTML(c)}
         <div><h3>${esc(c.nome)}</h3>
           <div class="info"><span>${esc(fmtDatas(c.datas))}</span>${c.local ? `<span>${esc(c.local)}</span>` : ""}</div>
-          <span class="papel ${c.owner_id === user.id ? "dono" : ""}">${c.owner_id === user.id ? "Organizador" : "Professor"}</span>
+          <div class="row" style="gap:6px;margin-top:8px"><span class="papel ${papelDe(c) === "dono" ? "dono" : ""}" style="margin:0">${ROTULO[papelDe(c)]}</span>${c.status && c.status !== "inscricoes" ? chipFase(c.status) : ""}</div>
         </div>
       </a>`).join("")}</div>`;
   }
@@ -133,7 +143,9 @@
       const pend = c.status === "pendente";
 
       const txt = pend
-        ? `<b>${esc(c.convidado_por_nome || "Um organizador")}</b> convidou você para cadastrar atletas em <b>${esc(c.competicao_nome || "uma competição")}</b>.`
+        ? (c.papel === "mesario"
+          ? `<b>${esc(c.convidado_por_nome || "Um organizador")}</b> convidou você para ser <b>mesário</b> em <b>${esc(c.competicao_nome || "uma competição")}</b>.`
+          : `<b>${esc(c.convidado_por_nome || "Um organizador")}</b> convidou você para cadastrar atletas em <b>${esc(c.competicao_nome || "uma competição")}</b>.`)
         : `Você ${c.status === "aceito" ? "aceitou" : "recusou"} o convite para <b>${esc(c.competicao_nome || "uma competição")}</b>.`;
 
       return `<div class="notif ${pend ? "nova" : "velha"}">

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/estilo.css?v=7">
+    <link rel="stylesheet" href="../assets/estilo.css?v=8">
   </head>
   <body>
     <main>
@@ -23,21 +23,22 @@
           <aside class="card placar-card" id="placarCard">
             <div class="mini-placar" aria-hidden="true"><span class="a">AKA</span><span class="b">AO</span></div>
             <h3>Placar eletrônico</h3>
-            <p>Programa para Windows que mostra o placar de kata e kumitê na TV ou no projetor. Funciona sem internet.</p>
-            <a class="btn alt" id="placarLink" href="#" hidden>Baixar para Windows</a>
+            <p><b>Recomendado: mesa integrada.</b> Depois de iniciar a competição, abra a mesa pelo botão da competição. Ela usa o mesmo placar, puxa as súmulas e salva os resultados sozinha.</p>
+            <p><b>Sem internet no local?</b> Use o aplicativo para Windows. Ele funciona offline, mas os nomes e os resultados são preenchidos à mão.</p>
+            <a class="btn alt" id="placarLink" href="#" hidden>Baixar o aplicativo para Windows</a>
             <p class="small" id="placarSem" hidden>O link de download ainda não foi configurado.</p>
           </aside>
         </div>
       </section>
 
       <section id="abaNotif" hidden>
-        <div class="page-head"><div><h1>Notificações</h1><p>Convites de organizadores para você cadastrar atletas.</p></div></div>
+        <div class="page-head"><div><h1>Notificações</h1><p>Convites de organizadores para você entrar na equipe de uma competição.</p></div></div>
         <div class="card" id="notifs"><p class="carregando">Carregando…</p></div>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script src="../js/config.js"></script>
-    <script src="../js/comum.js?v=7"></script>
-    <script src="../js/painel.js?v=7"></script>
+    <script src="../js/comum.js?v=8"></script>
+    <script src="../js/painel.js?v=8"></script>
   </body>
 </html>

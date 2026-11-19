@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mesa da competição — Shiai Manager</title>
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="../assets/placar.css?v=8">
+  </head>
+  <body>
+
+    <div id="control">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo" src="../assets/logo.svg" alt="" width="40" height="40">
+          <div><h1>Shiai Manager</h1><small>Placar — Mesa de controle</small></div>
+        </div>
+        <div class="seg" role="group" aria-label="Modalidade">
+          <button type="button" data-mode="kumite" aria-pressed="true">Kumite</button>
+          <button type="button" data-mode="kata" aria-pressed="false">Kata</button>
+        </div>
+        <div class="actions">
+          <button type="button" id="btnOpen" class="primary">Abrir placar da TV</button>
+          <button type="button" id="btnHere">Usar esta aba como placar</button>
+          <button type="button" id="btnUndo">↶ Desfazer</button>
+          <button type="button" id="btnTheme" class="theme-btn">☀ Tema claro</button>
+        </div>
+      </header>
+      <section id="mesaInt" aria-label="Súmula da competição"></section>
+
+      <p class="hint" id="openHint">Clique em “Abrir placar da TV”, arraste a janela para a TV ou projetor e clique em “Tela cheia”. Se o navegador bloquear, abra este mesmo endereço em outra aba e clique em “Usar esta aba como placar”.</p>
+      <section id="kumitePanel" style="display:grid;gap:16px">
+        <div class="card meta">
+          <label class="field">Evento <input id="evName" type="text" placeholder="Nome do campeonato"></label>
+          <label class="field">Categoria <input id="kCat" type="text" placeholder="Ex.: Kumite Adulto -75kg"></label>
+          <label class="field">Modalidade
+            <select id="kMod">
+              <option value="sanbon">Shobu Sanbon (6 pontos)</option>
+              <option value="nihon">Shobu Nihon (4 pontos)</option>
+              <option value="livre">Sem limite de pontos</option>
+            </select>
+          </label>
+          <label class="field">Tempo da luta (m:ss) <input id="kDur" type="text" inputmode="numeric" placeholder="2:00"></label>
+        </div>
+
+        <div class="card clock">
+          <div id="cTime" class="clock-digits">2:00</div>
+          <div class="clock-btns">
+            <button type="button" id="tStart" class="primary">▶ Iniciar</button>
+            <button type="button" id="tMinus">−1 s</button>
+            <button type="button" id="tPlus">+1 s</button>
+            <button type="button" id="tReset">Reiniciar tempo</button>
+          </div>
+        </div>
+
+        <div class="sides" id="kSides"></div>
+
+        <details class="card pause-card" id="pauseCard">
+          <summary>⏱ Cronômetro de pausa</summary>
+          <div class="pause-body">
+            <p class="hint">Enquanto estiver ligado, a TV mostra só este cronômetro, sem o placar. Use para intervalos e pausas.</p>
+            <div class="pause-row">
+              <label class="field">Tipo
+                <select id="pMode"><option value="up">Contar a partir de 0:00</option><option value="down">Contagem regressiva</option></select>
+              </label>
+              <label class="field" id="pDurWrap">Tempo da pausa (m:ss) <input id="pDur" type="text" inputmode="numeric" placeholder="1:00"></label>
+            </div>
+            <div class="clock">
+              <div id="pTime" class="clock-digits">0:00</div>
+              <div class="clock-btns">
+                <button type="button" id="pStart" class="primary">▶ Iniciar pausa</button>
+                <button type="button" id="pReset">Zerar</button>
+                <button type="button" id="pEnd" class="danger">Encerrar e voltar ao placar</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <div class="card result">
+          <div id="kStatus" class="status">Pronto para começar</div>
+          <div class="actions">
+            <button type="button" id="kSwapSides" title="Passa tudo do AKA para o AO e vice-versa">⇄ Inverter cores</button>
+            <button type="button" id="kHiki">Empate (Hikiwake)</button>
+            <button type="button" id="kClear">Tirar vencedor da tela</button>
+            <button type="button" id="kNew" class="danger">Nova luta</button>
+          </div>
+        </div>
+      </section>
+      <section id="kataPanel" hidden style="display:grid;gap:16px">
+        <div class="card meta">
+          <label class="field">Evento <input id="evName2" type="text" placeholder="Nome do campeonato"></label>
+          <label class="field">Categoria <input id="tCat" type="text" placeholder="Ex.: Kata Individual Feminino"></label>
+          <label class="field">Sistema de avaliação
+            <select id="tMethod"><option value="notas">Notas</option><option value="bandeiras">Bandeiras</option></select>
+          </label>
+          <label class="field">Formato da apresentação
+            <select id="tFormat"><option value="simultanea">Simultânea (AKA e AO juntos)</option><option value="individual">Individual (um de cada vez)</option></select>
+          </label>
+        </div>
+
+        <div class="sides" id="tSides"></div>
+
+        <div class="card result">
+          <div id="tStatus" class="status">Aguardando a decisão</div>
+          <div class="actions">
+            <button type="button" id="tSwapSides" title="Passa tudo do AKA para o AO e vice-versa">⇄ Inverter cores</button>
+            <button type="button" id="tClear">Tirar vencedor da tela</button>
+            <button type="button" id="tNew" class="danger">Nova apresentação</button>
+          </div>
+        </div>
+        <p class="hint">Clique em “AKA venceu” ou “AO venceu” e o vencedor aparece na TV na hora.</p>
+      </section>
+
+      <details class="card settings">
+        <summary>Ajustes de regra e exibição</summary>
+        <div class="settings-grid">
+          <label class="field">Penalidades, em ordem (separe por vírgula)
+            <input id="sPen" type="text">
+          </label>
+          <label class="field">Nome da categoria 1 de penalidade <input id="sCat1" type="text"></label>
+          <label class="field">Nome da categoria 2 de penalidade <input id="sCat2" type="text"></label>
+          <label class="field">Nome da categoria 3 de penalidade <input id="sCat3" type="text"></label>
+          <label class="field">Aviso de fim de luta (segundos) <input id="sWarn" type="number" min="0" max="120"></label>
+          <label class="check"><input id="sSenshu" type="checkbox"> Dar senshu automaticamente no primeiro ponto</label>
+          <label class="check"><input id="sSound" type="checkbox"> Sons de aviso e fim de tempo nesta tela</label>
+          <label class="check"><input id="sSwap" type="checkbox"> Inverter lados no placar (AO à esquerda)</label>
+        </div>
+        <p class="hint" style="margin-top:12px">A última penalidade da lista desclassifica o atleta e dá a vitória ao adversário.</p>
+      </details>
+    </div>
+
+    <div id="display" hidden>
+      <div id="dBoard"></div>
+      <div id="dFlash" class="flash" hidden></div>
+      <div class="d-tools">
+        <button type="button" id="dFs">Tela cheia</button>
+        <button type="button" id="dBack">Voltar ao controle</button>
+      </div>
+    </div>
+
+    <script src="../js/placar.js?v=8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/comum.js?v=8"></script>
+    <script src="../js/arquivos.js?v=8"></script>
+    <script src="../js/chave.js?v=8"></script>
+    <script src="../js/mesa.js?v=8"></script>
+
+  </body>
+</html>
