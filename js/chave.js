@@ -295,10 +295,11 @@ const Chave = {
 
     const res = this.resolver(dados, opts.resultados || {});
     const S = res.S, R = res.R;
-    const gap = S >= 64 ? 22 : S >= 32 ? 26 : S >= 16 ? 32 : 42;
-    const fs = S >= 32 ? 11 : 13.5;
+    const linhas = slots.filter(Boolean).length;
+    const gap = linhas >= 48 ? 24 : linhas >= 24 ? 28 : linhas >= 12 ? 34 : 42;
+    const fs = linhas >= 24 ? 11 : 13.5;
     const top = 34, padL = 8;
-    const H = top + S * gap + 26;
+    const H = top + linhas * gap + 30;
 
     if (opts.proporcao) {
       W = Math.max(1000, Math.round(H * opts.proporcao));
@@ -309,9 +310,24 @@ const Chave = {
     const colX = r => padL + r * colW;
     const colFim = r => r < R ? colX(r) + colW - 16 : colX(r) + colW - 20;
     const maxC = r => Math.max(6, Math.floor((colW - (r < R ? 30 : 12)) / (fs * 0.52)));
-    const ys = [slots.map((_, i) => top + i * gap + gap / 2 + 4)];
+    const folhas = [], saidas = [];
+    let cursor = top + gap / 2 + 4;
 
-    for (let r = 1; r <= R; r++) {
+    for (let j = 0; j < S / 2; j++) {
+      if (res.porChave[`r0-${j}`].real) {
+        folhas.push(cursor, cursor + gap);
+        saidas.push(cursor + gap / 2);
+        cursor += 2 * gap;
+      } else {
+        folhas.push(cursor, cursor);
+        saidas.push(cursor);
+        cursor += gap;
+      }
+    }
+
+    const ys = [folhas, saidas];
+
+    for (let r = 2; r <= R; r++) {
       const ant = ys[r - 1], cur = [];
 
       for (let j = 0; j < ant.length; j += 2) {
@@ -322,19 +338,24 @@ const Chave = {
     }
 
     const linhaAtleta = (r, y, cor, atleta, extra = {}) => {
-      const x = colX(r), xe = colFim(r);
+      const x = colX(extra.direto ? 0 : r), xe = colFim(r);
+      const limite = extra.direto ? maxC(0) + maxC(r) : maxC(r);
 
       out.push(`<line x1="${x}" y1="${y}" x2="${xe}" y2="${y}" stroke="${C.linha}" stroke-width="${r === R ? 2.4 : 1.6}"/>`);
       out.push(`<circle cx="${x + 6}" cy="${y - 8}" r="${cor === "ouro" ? 4.5 : 4}" fill="${C[cor]}"/>`);
 
-      if (extra.vazio) {
-        out.push(`<text x="${x + 16}" y="${y - 5}" font-size="${fs - 1}" fill="${C.mut}" font-style="italic">(sem adversário)</text>`);
-      } else if (atleta && atleta.nome) {
+      if (atleta && atleta.nome) {
         const peso = extra.perdeu ? `fill="${C.mut}"` : `fill="${C.txt}" font-weight="${extra.venceu ? 700 : 500}"`;
 
-        out.push(`<text x="${x + 16}" y="${y - 5}" font-size="${fs}" ${peso}>${esc(this.corte(atleta.nome, maxC(r)))}</text>`);
+        out.push(`<text x="${x + 16}" y="${y - 5}" font-size="${fs}" ${peso}>${esc(this.corte(atleta.nome, limite))}</text>`);
+      }
+
+      if (extra.direto) {
+        out.push(`<text x="${x + 16}" y="${y + 10}" font-size="${fs - 3}" fill="${C.mut}" font-style="italic">(sem adversário)</text>`);
       }
     };
+
+    const direto = (p, lado) => p.r === 1 && !res.porChave[`r0-${2 * p.j + lado}`].real;
 
     const circulo = (x, y, numero) => {
       out.push(`<circle cx="${x}" cy="${y}" r="9.5" fill="#fff" stroke="${C.linha}" stroke-width="1.2"/>
@@ -346,11 +367,15 @@ const Chave = {
     }
 
     for (const p of res.partidas) {
-      const y1 = ys[p.r][2 * p.j], y2 = ys[p.r][2 * p.j + 1];
-      const decidido = p.real && p.vencedor;
+      if (!p.real) {
+        continue;
+      }
 
-      linhaAtleta(p.r, y1, "aka", p.aka, { vazio: p.r === 0 && !p.aka, venceu: decidido && p.vencedor === "aka", perdeu: decidido && p.vencedor === "ao" });
-      linhaAtleta(p.r, y2, "ao", p.ao, { vazio: p.r === 0 && !p.ao, venceu: decidido && p.vencedor === "ao", perdeu: decidido && p.vencedor === "aka" });
+      const y1 = ys[p.r][2 * p.j], y2 = ys[p.r][2 * p.j + 1];
+      const decidido = p.vencedor;
+
+      linhaAtleta(p.r, y1, "aka", p.aka, { direto: direto(p, 0), venceu: decidido && p.vencedor === "aka", perdeu: decidido && p.vencedor === "ao" });
+      linhaAtleta(p.r, y2, "ao", p.ao, { direto: direto(p, 1), venceu: decidido && p.vencedor === "ao", perdeu: decidido && p.vencedor === "aka" });
 
       const xe = colFim(p.r), ym = (y1 + y2) / 2;
 

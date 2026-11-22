@@ -1,6 +1,6 @@
 "use strict";
 
-const BUILD = 8;
+const BUILD = 9;
 
 console.log("Shiai Manager build " + BUILD);
 
