@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Minhas competições — Shiai Manager</title>
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/estilo.css?v=9">
+  </head>
+  <body>
+    <main>
+      <section id="abaComp">
+        <div class="page-head">
+          <div><h1>Minhas competições</h1><p>As que você criou e as que você foi convidado para ajudar.</p></div>
+          <span class="spacer"></span>
+          <button class="btn big" id="btnCriar" type="button">+ Criar competição</button>
+        </div>
+        <div class="painel-lado">
+          <div id="lista"><p class="carregando">Carregando…</p></div>
+          <aside class="card placar-card" id="placarCard">
+            <div class="mini-placar" aria-hidden="true"><span class="a">AKA</span><span class="b">AO</span></div>
+            <h3>Placar eletrônico</h3>
+            <p><b>Recomendado: mesa integrada.</b> Depois de iniciar a competição, abra a mesa pelo botão da competição. Ela usa o mesmo placar, puxa as súmulas e salva os resultados sozinha.</p>
+            <p><b>Sem internet no local?</b> Use o aplicativo para Windows. Ele funciona offline, mas os nomes e os resultados são preenchidos à mão.</p>
+            <a class="btn alt" id="placarLink" href="#" hidden>Baixar o aplicativo para Windows</a>
+            <p class="small" id="placarSem" hidden>O link de download ainda não foi configurado.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="abaNotif" hidden>
+        <div class="page-head"><div><h1>Notificações</h1><p>Convites de organizadores para você entrar na equipe de uma competição.</p></div></div>
+        <div class="card" id="notifs"><p class="carregando">Carregando…</p></div>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/comum.js?v=9"></script>
+    <script src="../js/painel.js?v=9"></script>
+  </body>
+</html>

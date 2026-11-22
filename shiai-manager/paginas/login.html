@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Entrar — Shiai Manager</title>
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/estilo.css?v=9">
+  </head>
+  <body class="login-body">
+    <div class="login">
+      <section class="login-arte">
+        <div class="marca"><img src="../assets/logo.svg" alt="" width="44" height="44"><span><b>Shiai Manager</b><small>Campeonatos de karatê</small></span></div>
+        <div>
+          <h1>Do cadastro à chave sorteada</h1>
+          <p>Crie a sua competição, convide os professores para inscreverem os alunos e gere as súmulas de cada categoria.</p>
+        </div>
+        <svg class="arte-chave" viewBox="0 0 520 250" aria-hidden="true">
+          <path class="d" stroke="#E5404F" d="M10 20h120v45"/>
+          <path class="d" stroke="#4C7EEA" d="M10 110h120V65"/>
+          <path class="d" stroke="#E5404F" d="M10 140h120v45"/>
+          <path class="d" stroke="#4C7EEA" d="M10 230h120v-45"/>
+          <path class="d" stroke="#E5404F" style="animation-delay:.35s" d="M130 65h130v60"/>
+          <path class="d" stroke="#4C7EEA" style="animation-delay:.35s" d="M130 185h130v-60"/>
+          <path class="d" stroke="#FFFFFF" style="animation-delay:.7s" d="M260 125h190"/>
+          <circle class="campeao" cx="478" cy="125" r="18" fill="#F2B21B"/>
+        </svg>
+      </section>
+
+      <section class="login-form">
+        <div class="login-box">
+          <h2 id="titulo">Entrar</h2>
+          <p class="mut" id="sub">Use o e-mail e a senha da sua conta.</p>
+          <nav class="tabs" aria-label="Entrar ou criar conta">
+            <a href="#entrar" id="tEntrar" aria-current="page">Entrar</a>
+            <a href="#criar" id="tCriar">Criar conta</a>
+          </nav>
+          <form id="form" novalidate>
+            <label class="field" id="campoNome" hidden>Seu nome<input name="nome" autocomplete="name" maxlength="80"></label>
+            <label class="field">E-mail<input name="email" type="email" autocomplete="email" required></label>
+            <label class="field">Senha<input name="senha" type="password" autocomplete="current-password" required minlength="6"></label>
+            <div id="msg" class="msg" hidden role="status"></div>
+            <p id="reenvio" hidden class="small"><button type="button" class="linkbtn" id="btnReenviar">Reenviar e-mail de confirmação</button></p>
+            <button class="btn big" id="enviar" type="submit">Entrar</button>
+          </form>
+          <p style="margin-top:14px"><button type="button" class="linkbtn" id="esqueci">Esqueci minha senha</button></p>
+          <div class="login-down" id="down" hidden>
+            Vai usar o placar eletrônico na competição? <a id="downLink" href="#">Baixar o Shiai Manager para Windows</a>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/comum.js?v=9"></script>
+    <script src="../js/login.js?v=9"></script>
+  </body>
+</html>

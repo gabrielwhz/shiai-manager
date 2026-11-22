@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Minha conta — Shiai Manager</title>
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/estilo.css?v=9">
+  </head>
+  <body>
+    <main>
+      <div class="page-head"><div><h1>Minha conta</h1><p>Seus dados, sua senha e a exclusão da conta.</p></div></div>
+      <div class="conta-grid">
+        <section class="card stack" aria-labelledby="tPerfil">
+          <h2 id="tPerfil">Perfil</h2>
+          <div class="foto-pick">
+            <span id="fotoPrev"></span>
+            <div class="stack" style="gap:8px">
+              <label class="btn alt sm">Trocar foto<input type="file" id="fotoFile" accept="image/png,image/jpeg,image/webp" hidden></label>
+              <button type="button" class="linkbtn danger" id="fotoTirar" hidden>Remover foto</button>
+            </div>
+          </div>
+          <label class="field">Nome<input id="nome" maxlength="80" autocomplete="name"></label>
+          <label class="field">E-mail<input id="email" readonly><span class="hint">O e-mail é usado para entrar e para receber convites.</span></label>
+          <div><button class="btn" id="salvarPerfil" type="button">Salvar perfil</button></div>
+        </section>
+
+        <div class="stack" style="gap:20px">
+          <section class="card stack" aria-labelledby="tSenha">
+            <h2 id="tSenha">Senha</h2>
+            <p class="mut">Para trocar a senha, enviamos um link de confirmação para <b id="emailSenha"></b>. Abra o e-mail e crie a nova senha pelo link.</p>
+            <div><button class="btn alt" id="enviarLink" type="button">Enviar link para trocar a senha</button></div>
+            <div class="msg ok" id="msgSenha" hidden role="status"></div>
+          </section>
+
+          <section class="card stack perigo" aria-labelledby="tExcluir">
+            <h2 id="tExcluir">Excluir conta</h2>
+            <p class="mut" id="txtExcluir">Carregando…</p>
+            <label class="field">Digite sua senha para confirmar<input type="password" id="senhaExcluir" autocomplete="current-password"></label>
+            <div><button class="btn danger" id="excluirConta" type="button">Excluir minha conta</button></div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/comum.js?v=9"></script>
+    <script src="../js/conta.js?v=9"></script>
+  </body>
+</html>
